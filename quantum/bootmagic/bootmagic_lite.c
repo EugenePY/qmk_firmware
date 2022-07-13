@@ -27,9 +27,12 @@ __attribute__((weak)) void bootmagic_lite_reset_eeprom(void) {
  *
  *  100% less potential for accidentally making the keyboard do stupid things.
  */
+
 __attribute__((weak)) void bootmagic_lite(void) {
     // We need multiple scans because debouncing can't be turned off.
+    //
     matrix_scan();
+
 #if defined(DEBOUNCE) && DEBOUNCE > 0
     wait_ms(DEBOUNCE * 2);
 #else
