@@ -63,6 +63,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 #if defined(CAP_INDICATOR_ENABLE) || defined(LAYER_INDICATOR_ENABLE)
 
+bool led_update_kb(led_t led_state) {
+    if (led_update_user(led_state)) {
+        if (led_state.caps_lock) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false;
+}
+
 void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     // Default RED
     rgb_color_t color = {RGB_RED};
