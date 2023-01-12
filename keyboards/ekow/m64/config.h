@@ -22,9 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* USB Device descriptor parameter */
 #define VENDOR_ID 0x4B59 // KY
 #define PRODUCT_ID 0x0000
-#define DEVICE_VER 0x0001
+#define DEVICE_VER 0x0000
 #define MANUFACTURER KeeBoyzLab
-#define PRODUCT M64
+#define PRODUCT L64
 
 // key matrix size
 #define MATRIX_ROWS 5

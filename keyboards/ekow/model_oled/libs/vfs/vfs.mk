@@ -1,0 +1,7 @@
+MODULE = VFS
+$(MODULE)_SRC += $(PROJECT_LIB_PATH)/vfs/vfat.c
+$(MODULE)_INC += $(PROJECT_LIB_PATH)/vfs
+
+OPT_DEFS += 
+SRC += ${VFS_SRC}
+VPATH += ${VFS_INC}
