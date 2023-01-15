@@ -85,9 +85,7 @@ const is31_led PROGMEM g_is31_leds[DRIVER_LED_TOTAL] = {
     {0, CS10_SW4, CS9_SW4, CS8_SW4},
     {0, CS10_SW5, CS9_SW5, CS8_SW5},
     {0, CS10_SW6, CS9_SW6, CS8_SW6},
-    {0, CS24_SW8, CS23_SW8, CS22_SW8},
-    {0, CS24_SW1, CS23_SW1, CS22_SW1},
-    {0, CS24_SW2, CS23_SW2, CS22_SW2},
+    {0, CS24_SW8, CS23_SW8, CS22_SW8}, {0, CS24_SW1, CS23_SW1, CS22_SW1}, {0, CS24_SW2, CS23_SW2, CS22_SW2},
     {0, CS24_SW3, CS23_SW3, CS22_SW3},
     {0, CS24_SW6, CS23_SW6, CS22_SW6},
     {0, CS13_SW2, CS12_SW2, CS11_SW2},
@@ -139,8 +137,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif
 
 #if defined(CAP_INDICATOR_ENABLE) || defined(LAYER_INDICATOR_ENABLE)
-<<<<<<< Updated upstream
-=======
 /*
 bool led_update_kb(led_t led_state) {
     if (led_update_user(led_state)) {
@@ -153,7 +149,6 @@ bool led_update_kb(led_t led_state) {
     return false;
 }
 */
->>>>>>> Stashed changes
 
 void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     // Default RED
