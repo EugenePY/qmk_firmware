@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "akira.h"
+<<<<<<< HEAD
 #include "quantum.h"
 
 #ifdef CONSOLE_ENABLE
@@ -25,3 +26,5 @@ void keyboard_post_init_user(void) {
     // debug_mouse=true
 }
 #endif
+=======
+>>>>>>> m64-temp

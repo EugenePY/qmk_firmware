@@ -62,6 +62,9 @@ __attribute__((weak)) void bootloader_jump(void) {
     NVIC_SystemReset();
 }
 
+__attribute__((weak)) void mcu_reset(void) {
+    NVIC_SystemReset();
+}
 // not needed at all, but if anybody attempts to invoke it....
 void enter_bootloader_mode_if_requested(void) {}
 
@@ -74,6 +77,10 @@ void enter_bootloader_mode_if_requested(void) {}
 
 __attribute__((weak)) void bootloader_jump(void) {
     *MAGIC_ADDR = BOOTLOADER_MAGIC; // set magic flag => reset handler will jump into boot loader
+    NVIC_SystemReset();
+}
+
+__attribute__((weak)) void mcu_reset(void) {
     NVIC_SystemReset();
 }
 
