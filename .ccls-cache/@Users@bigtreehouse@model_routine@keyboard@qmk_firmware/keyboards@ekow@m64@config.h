@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PRODUCT_ID 0x0000
 #define DEVICE_VER 0x0001
 #define MANUFACTURER KeeBoyzLab
-#define PRODUCT M64
+#define PRODUCT C64
 
 // key matrix size
 #define MATRIX_ROWS 5
@@ -32,9 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // M64 PCB default pin-out
 #define MATRIX_ROW_PINS \
-    { B10, A15, B1, B0, A4 }
+    { B10, A2, A5, A6, A7 }
 #define MATRIX_COL_PINS \
-    { A1, B12, A8, B13, A10, A13, B4, B3, B5, B8, B9, C13, C14, C15, A0 }
+    { A1, B12, B13, B14, A15, B15, B3, B4, B5, B8, B9, C13, C14, C15, A10 }
 
 // Keyboard Matrix Assignments
 #define DIODE_DIRECTION COL2ROW
@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ISS_SDB_PIN A3
 #define DRIVER_COUNT 1
 #define DRIVER_ADDR_1 0b0110000
-#define LED_DRIVER_1_LED_TOTAL 1
+#define LED_DRIVER_1_LED_TOTAL 70
 #define DRIVER_LED_TOTAL LED_DRIVER_1_LED_TOTAL
 #define ISSI_DRIVER_TOTAL DRIVER_LED_TOTAL
 
@@ -101,18 +101,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // RGB Underglow
 /* M64 using PWD to control the underglow.
  */
-#define RGB_DI_PIN B15
+#define RGB_DI_PIN A8
 #define RGBLED_NUM 16
 #define RGBLIGHT_LED_MAP \
     { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0 }
 
+#define RGBLIGHT_EFFECT_BREATHING
+#define RGBLIGHT_EFFECT_RAINBOW_MOOD
+#define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+#define RGBLIGHT_EFFECT_SNAKE
+#define RGBLIGHT_EFFECT_KNIGHT
+#define RGBLIGHT_EFFECT_CHRISTMAS
+#define RGBLIGHT_EFFECT_STATIC_GRADIENT
 #define RGBLIGHT_EFFECT_RGB_TEST
+#define RGBLIGHT_EFFECT_ALTERNATING
+#define RGBLIGHT_EFFECT_TWINKLE
 
-#define WS2812_PWM_COMPLEMENTARY_OUTPUT
+#define RGBLIGHT_DEFAULT_HUE 10
+#define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_RAINBOW_MOOD
+
+// #define WS2812_PWM_COMPLEMENTARY_OUTPUT
 #define WS2812_PWM_DRIVER PWMD1
-#define WS2812_PWM_CHANNEL 3
-
+#define WS2812_PWM_CHANNEL 1
 #define WS2812_PWM_PAL_MODE 1
+
 #define WS2812_DMA_STREAM STM32_DMA2_STREAM5
 #define WS2812_DMA_CHANNEL 6
 
