@@ -5,15 +5,20 @@
 
 #define PACK __attribute__((packed))
 
-#define FLASH_FILE_SIZE_BYTES FLASH_SIZE
+#ifndef FLASH_FILE_SIZE_BYTES
+#    define FLASH_FILE_SIZE_BYTES 1024 * 16
+#endif
 
 /** Number of sectors that comprise a single logical disk cluster. */
 #define SECTOR_PER_CLUSTER 4
 
 /** Size of a single logical sector on the disk. */
-#define SECTOR_SIZE_BYTES 512
+#ifndef SECTOR_SIZE_BYTES
+#    define SECTOR_SIZE_BYTES 512
+#endif
 
 /** Size of a logical cluster on the disk, in bytes */
+
 #define CLUSTER_SIZE_BYTES (SECTOR_PER_CLUSTER * SECTOR_SIZE_BYTES)
 
 /** Number of sectors required to store a given size in bytes.
@@ -123,10 +128,6 @@ enum {
     DISK_FILE_ENTRY_FLASH_LFN = 1,
     /** Legacy MSDOS FAT file entry of the virtual FLASH.BIN image file. */
     DISK_FILE_ENTRY_FLASH_MSDOS = 2,
-    /** Long File Name FAT file entry of the virtual EEPROM.BIN image file. */
-    DISK_FILE_ENTRY_EEPROM_LFN = 3,
-    /** Legacy MSDOS FAT file entry of the virtual EEPROM.BIN image file. */
-    DISK_FILE_ENTRY_EEPROM_MSDOS = 4,
 };
 
 /** Enum for the physical disk blocks of the virtual disk. */
@@ -200,7 +201,7 @@ typedef union {
         uint16_t Reserved2;
         uint16_t Unicode12;
         uint16_t Unicode13;
-    } VFAT_LongFileName;
+    } PACK VFAT_LongFileName;
 
     /** Legacy FAT MSDOS 8.3 file entry. */
     struct {
@@ -212,7 +213,7 @@ typedef union {
         uint16_t CreationDate;
         uint16_t StartingCluster;
         uint32_t FileSizeBytes;
-    } MSDOS_File;
+    } PACK MSDOS_File;
 
     /** Legacy FAT MSDOS (sub-)directory entry. */
     struct {
@@ -223,15 +224,15 @@ typedef union {
         uint16_t CreationDate;
         uint16_t StartingCluster;
         uint32_t Reserved2;
-    } MSDOS_Directory;
+    } PACK MSDOS_Directory;
 } FATDirectoryEntry_t;
 
-void vfs_init(void);
-
+// APIs
 // Read the data and return the fat12 format
 void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer);
 // Write the data block
 void vfs_write_fat12(const uint16_t block_idx, uint8_t* intput_block_buffer);
+
 // each image is 96 * 64 * n_frame * 2 bytes
 void open_img(uint16_t block_idx, uint8_t* output_buffer);
 void close_img(void);

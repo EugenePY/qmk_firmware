@@ -63,7 +63,9 @@ static const uint8_t configurationDescriptorData[] = {
                       USB_EP_MODE_TYPE_BULK,  /* attributes (bulk)                              */
                       MS_EPSIZE,              /* max packet size                                */
                       0x05                    /* polling interval (ignored for bulk end-points) */
-                      )};
+                      ),
+    // ADDing Normal HID interface
+};
 static const USBDescriptor configurationDescriptor = {sizeof(configurationDescriptorData), configurationDescriptorData};
 
 /* Language descriptor */
@@ -73,11 +75,11 @@ static const uint8_t languageDescriptorData[] = {
 static const USBDescriptor languageDescriptor = {sizeof(languageDescriptorData), languageDescriptorData};
 
 /* Vendor descriptor */
-static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(22), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'D', 0, 'e', 0, 'm', 0, 'o', 0, 'V', 0, 'e', 0, 'n', 0, 'd', 0, 'o', 0, 'r', 0};
+static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(31), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'P', 0, 'l', 0, 'a', 0, 'y', 0, 'K', 0, 'B', 0, 'x', 0, 'K', '0', 'e', '0', 'e', '0', 'B', '0', 'o', '0', 'y', '0', 'z', '0'};
 static const USBDescriptor vendorDescriptor       = {sizeof(vendorDescriptorData), vendorDescriptorData};
 
 /* Product descriptor */
-static const uint8_t       productDescriptorData[] = {USB_DESC_BYTE(24), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'D', 0, 'e', 0, 'm', 0, 'o', 0, 'P', 0, 'r', 0, 'o', 0, 'd', 0, 'u', 0, 'c', 0, 't', 0};
+static const uint8_t       productDescriptorData[] = {USB_DESC_BYTE(22), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'M', 0, 'O', 0, 'D', 0, 'E', 0, 'L', 0, '-', 0, 'O', 0, 'L', 0, 'E', 0, 'D', 0};
 static const USBDescriptor productDescriptor       = {sizeof(productDescriptorData), productDescriptorData};
 
 /* Serial number descriptor */
@@ -136,14 +138,15 @@ static void usbEvent(USBDriver* usbp, usbevent_t event) {
 
 /* Configuration of the USB driver */
 
-static const USBConfig msd_usbConfig = {usbEvent, getDescriptor, msdRequestsHook, NULL};
+USBConfig msd_usbConfig = {usbEvent, getDescriptor, msdRequestsHook, NULL};
 
 /* Turns on a LED when there is I/O activity on the USB port */
 static void usbActivity(bool_t active){
 
 };
 /* USB mass storage configuration */
-static const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "ChibiOS", "Exmp MSD", "0.1"};
+
+const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "PKBxKB", "ModelOLED", "0.1"};
 
 /* USB mass storage driver */
 USBMassStorageDriver UMSD1;
@@ -159,12 +162,12 @@ void msd_protocol_setup(void) {
     msdStart(&UMSD1, &msdConfig);
     eepromObjectInit(&EEPROM1);
     msdReady(&UMSD1, (BaseBlockDevice*)&EEPROM1);
-    usbStop(UMSD1.config->usbp);
     /* trigger the reset event for the QMK usb handler*/
+    usbStop(UMSD1.config->usbp);
     usbDisconnectBus(UMSD1.config->usbp);
+
+    // reconfig the USB
     usbStart(UMSD1.config->usbp, &msd_usbConfig);
-    wait_ms(1500);
+    wait_ms(50);
     usbConnectBus(UMSD1.config->usbp);
 }
-
-

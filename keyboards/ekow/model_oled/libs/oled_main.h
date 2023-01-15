@@ -1,3 +1,4 @@
+/* default function/MACRO variables declarations */
 #pragma once
 #include <ch.h>
 #include <hal.h>
@@ -9,6 +10,9 @@
 
 extern event_source_t oled_event_source;
 
+void model_oled_img_flash_set(void);
+
+// OLED Driver Tasks
 // OLED task initialization
 void oled_task_init(void);
 

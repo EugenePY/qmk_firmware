@@ -1,6 +1,6 @@
+#include <string.h>
 #include "usb_msd.h"
 #include "hal_ioblock.h"
-
 #if HAL_USE_MASS_STORAGE_USB || defined(__DOXYGEN__)
 
 /*===========================================================================*/
@@ -32,8 +32,8 @@ static USBMassStorageDriver *driver_head;
 #    define MSD_COMMAND_PHASE_ERROR 0x02
 
 /* SCSI commands */
-#    define SCSI_CMD_TEST_UNIT_READY 0x00
 #    define SCSI_CMD_REQUEST_SENSE 0x03
+#    define SCSI_CMD_TEST_UNIT_READY 0x00
 #    define SCSI_CMD_FORMAT_UNIT 0x04
 #    define SCSI_CMD_INQUIRY 0x12
 #    define SCSI_CMD_MODE_SENSE_6 0x1A
@@ -361,13 +361,36 @@ static bool_t msd_scsi_process_send_diagnostic(USBMassStorageDriver *msdp) {
 
 static bool_t msd_do_write(USBMassStorageDriver *msdp, uint32_t start, uint16_t total) {
     /* get the first packet */
-    msd_start_receive(msdp, rw_buf[(total + 1) % 2], msdp->block_dev_info.blk_size);
-    if (!msd_wait_for_isr(msdp)) return FALSE;
-    return blkWrite(msdp->bbdp, start, rw_buf[(total + 1) % 2], total);
+
+    msd_start_receive(msdp, rw_buf[0], msdp->block_dev_info.blk_size);
+    msd_wait_for_isr(msdp);
+
+    for (uint16_t i = 0; i < total; i++) {
+        if (i < (total - 1)) {
+            msd_start_receive(msdp, rw_buf[(i + 1) % 2], msdp->block_dev_info.blk_size);
+        }
+        if (!blkWrite(msdp->bbdp, start + i, rw_buf[(i + 1) % 2], 1)) {
+            msd_scsi_set_sense(msdp, SCSI_SENSE_KEY_MEDIUM_ERROR, SCSI_ASENSE_WRITE_FAULT, SCSI_ASENSEQ_NO_QUALIFIER);
+            return FALSE;
+        }
+        if (i < (total - 1)) {
+            /* now wait for the USB event to complete */
+            msd_wait_for_isr(msdp);
+        }
+    }
+    return TRUE;
 }
 
 static bool_t msd_do_read(USBMassStorageDriver *msdp, uint32_t start, uint16_t total) {
-    return blkRead(msdp->bbdp, start, rw_buf[(total + 1) % 2], total);
+    for (uint16_t i = 0; i < total; i++) {
+        if (blkRead(msdp->bbdp, start + i, rw_buf[i % 2], 1)) {
+            msd_start_transmit(msdp, rw_buf[i % 2], msdp->block_dev_info.blk_size);
+            msd_wait_for_isr(msdp);
+        } else {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 /**
@@ -396,30 +419,14 @@ static bool_t msd_scsi_process_start_read_write_10(USBMassStorageDriver *msdp) {
 
     if (cbw->scsi_cmd_data[0] == SCSI_CMD_WRITE_10) {
         /* process a write command */
-        if (!msd_do_write(msdp, rw_block_address, total)) {
-            /* write failed */
-            msd_scsi_set_sense(msdp, SCSI_SENSE_KEY_MEDIUM_ERROR, SCSI_ASENSE_WRITE_FAULT, SCSI_ASENSEQ_NO_QUALIFIER);
-            return FALSE;
-        }
+        return msd_do_write(msdp, rw_block_address, total);
     } else {
         if (!msd_do_read(msdp, rw_block_address, total)) {
-            /* read failed */
             msd_scsi_set_sense(msdp, SCSI_SENSE_KEY_MEDIUM_ERROR, SCSI_ASENSE_READ_ERROR, SCSI_ASENSEQ_NO_QUALIFIER);
+            /* read failed */
             return FALSE;
-        } else {
-            /* loop over each block */
-            for (int i = 0; i < total; i++) {
-                /* transmit the block */
-                msd_start_transmit(msdp, rw_buf[i % 2], msdp->block_dev_info.blk_size);
-
-                /* wait for the USB event to complete */
-                msd_wait_for_isr(msdp);
-            }
-
-            return TRUE;
         }
     }
-
     return TRUE;
 }
 
@@ -574,6 +581,7 @@ static void msd_read_command_block(USBMassStorageDriver *msdp) {
  * @brief Mass storage thread that processes commands
  *
  **/
+
 static THD_WORKING_AREA(mass_storage_thread_wa, 128);
 static THD_FUNCTION(mass_storage_thread, arg) {
     USBMassStorageDriver *msdp = (USBMassStorageDriver *)arg;

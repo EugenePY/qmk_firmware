@@ -19,7 +19,9 @@
 #include "quantum.h"
 
 #if defined(KEYBOARD_ekow_model_oled_alpha)
-  #include "alpha.h"
+#    include "alpha.h"
 #elif defined(KEYBOARD_ekow_model_oled_beta)
-  #include "beta.h"
+#    include "beta.h"
+#elif defined(KEYBOARD_ekow_model_oled_gamma)
+#    include "gamma.h"
 #endif
