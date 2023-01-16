@@ -38,7 +38,8 @@
 #define FILE_CLUSTERS(size) ((size / CLUSTER_SIZE_BYTES) + ((size % CLUSTER_SIZE_BYTES) ? 1 : 0))
 
 /** Total number of logical sectors/blocks on the disk. */
-#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
+// #define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
+#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 4
 
 /** Converts a given time in HH:MM:SS format to a FAT filesystem time.
  *
@@ -225,6 +226,16 @@ typedef union {
         uint16_t StartingCluster;
         uint32_t Reserved2;
     } PACK MSDOS_Directory;
+
+    struct {
+        uint8_t  Name[11];
+        uint8_t  Attributes;
+        uint8_t  Reserved[10];
+        uint16_t CreationTime;
+        uint16_t CreationDate;
+        uint16_t StartingCluster;
+        uint32_t Reserved2;
+    } PACK MSDOS_Directory_new;
 } FATDirectoryEntry_t;
 
 // APIs

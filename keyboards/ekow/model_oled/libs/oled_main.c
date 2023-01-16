@@ -11,24 +11,27 @@
 //
 #ifndef QMK_MCU_STM32F072
 
-event_source_t oled_event_source;
+event_source_t   oled_event_source;
 static thread_t *thread;
 #endif
 
-static bool is_flashing = false;
+static bool _is_flashing = false;
 
 void model_oled_img_flash_set(void) {
-    is_flashing = true;
+    _is_flashing = true;
 };
 
 void model_oled_as_msd(void) {
-    msd_protocol_setup(); // msd msd_protocol_entry point.
+    if (!_is_flashing) {
+        msd_protocol_setup(); // msd msd_protocol_entry point.
+        _is_flashing = true;
+    }
 }
 
 // Worker thread
 // event hander and process entry point.
 #ifndef QMK_MCU_STM32F072
-static THD_WORKING_AREA(waOLEDListenerThread, 128);
+static THD_WORKING_AREA(waOLEDListenerThread, 256);
 static THD_FUNCTION(OLEDListenerThread, arg) {
     (void)arg;
     chRegSetThreadName("OLEDListenerThread");
@@ -42,10 +45,10 @@ static THD_FUNCTION(OLEDListenerThread, arg) {
         eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
         switch (evt) {
             case (FLASHING_EVT):
-                model_oled_as_msd();
-            // case (STOP_RENDER_EVT):
-            //    stop_render = true;
-            //  ssd1331_render_stop(driver);
+                if (!_is_flashing) {
+                    model_oled_as_msd();
+                    _is_flashing = true;
+                }
             default:
                 break;
         }
@@ -54,7 +57,9 @@ static THD_FUNCTION(OLEDListenerThread, arg) {
 #endif
 
 // reset to default image from eeprom
-void model_oled_reset_image(void) {}
+void model_oled_reset_image(void) {
+
+}
 
 void model_oled_enject(void) {
     bootloader_jump();
@@ -76,7 +81,7 @@ void oled_task_stop(void) {
 // event trigger task
 bool oled_task_user(void) {
 #ifndef QMK_MCU_STM32F072
-    if (is_flashing) {
+    if (_is_flashing) {
         model_oled_as_msd();
     }
 #endif

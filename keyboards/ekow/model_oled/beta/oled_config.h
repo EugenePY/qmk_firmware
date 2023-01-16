@@ -20,8 +20,11 @@
 #define OLED_DISPLAY_WIDTH 96
 #define OLED_DISPLAY_HEIGHT 64
 #define OLED_BUFFER_TYPE uint8_t
-#define OLED_MATRIX_SIZE (OLED_DISPLAY_HEIGHT / (sizeof(OLED_BUFFER_TYPE)) * OLED_DISPLAY_WIDTH) 
+#define OLED_MATRIX_SIZE (OLED_DISPLAY_HEIGHT / (sizeof(OLED_BUFFER_TYPE)) * OLED_DISPLAY_WIDTH)
 #define OLED_BLOCK_TYPE uint8_t
-#define OLED_BLOCK_COUNT (sizeof(OLED_BLOCK_TYPE) * 8)        // 32 (compile time mathed)
-#define OLED_BLOCK_SIZE (OLED_MATRIX_SIZE / OLED_BLOCK_COUNT) // 32 (compile time mathed)
-                                                              //
+#define OLED_BLOCK_COUNT (sizeof(OLED_BLOCK_TYPE) * 8) // 32 (compile time mathed)
+#define OLED_BLOCK_SIZE \
+    (OLED_MATRIX_SIZE / OLED_BLOCK_COUNT) // 32 (compile time mathed)
+                                          //
+
+#define USE_MSC_PROTOCOL true // use MSC for updating image/gif

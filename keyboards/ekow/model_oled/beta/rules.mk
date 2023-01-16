@@ -35,8 +35,9 @@ SOLENOIDE_ENABLE = yes
 OLED_ENABLE = yes
 
 ifeq ($(OLED_ENABLE), yes)
-	OLED_DRIVER = custom
+
 	EEPROM_DRIVER = vendor
+	OLED_DRIVER = custom
 	include $(PROJECT_LIB_PATH)/oled.mk
 endif
 

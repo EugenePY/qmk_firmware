@@ -5,9 +5,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include "vfat.h"
+#include "legacy_flash_ops.h"
 
 // defined in the linker script.
 uint32_t __oled_img_base_address;
+
 #define FLASH_BASE_ADDR __oled_img_base_address
 #define FLASH_ADDR(offset) (FLASH_BASE_ADDR + (offset))
 #define FLASH_PTR(offset) ((__IO uint8_t*)FLASH_ADDR(offset))
@@ -20,11 +22,11 @@ static const FATBootBlock_t BootBlock = {
     .SectorsPerCluster     = SECTOR_PER_CLUSTER,
     .ReservedSectors       = 1,
     .FATCopies             = 2,
-    .RootDirectoryEntries  = 32,
+    .RootDirectoryEntries  = ((SECTOR_SIZE_BYTES) / sizeof(FATDirectoryEntry_t)) * 1, // First 32 Bytes in sector
     .TotalSectors16        = LUN_MEDIA_BLOCKS,
-    .MediaDescriptor       = 0xF8,
+    .MediaDescriptor       = 0xF8, // Unremovable
     .SectorsPerFAT         = 1,
-    .SectorsPerTrack       = (LUN_MEDIA_BLOCKS % 64),
+    .SectorsPerTrack       = (LUN_MEDIA_BLOCKS % 64), //
     .Heads                 = (LUN_MEDIA_BLOCKS / 64),
     .HiddenSectors         = 0,
     .TotalSectors32        = 0,
@@ -147,7 +149,7 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable, const uint16_t Inde
 }
 
 static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer, const bool Read) {
-    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock; //+ (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
     uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
     uint32_t FlashAddress = (uint32_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
@@ -160,9 +162,12 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBu
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
         }
     } else {
-        for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++) {
-            FLASH_BYTE(FlashAddress, i) = BlockBuffer[i];
+        FLASH_Unlock();
+        for (uint16_t i = 0; i < SECTOR_SIZE_BYTES - 1; i += 2) {
+            uint16_t halfw = (uint16_t)BlockBuffer[i] | ((uint16_t)BlockBuffer[i + 1]) << 8;
+            FLASH_ProgramHalfWord((FLASH_BYTE(FlashAddress, i)), halfw);
         }
+        FLASH_Lock();
     }
     /* Write out the mapped block of data to the device's FLASH */
     // flashProgram(&flash_driver, FlashAddress, SECTOR_SIZE_BYTES, BlockBuffer);
@@ -193,7 +198,7 @@ void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
             break;
 
         case DISK_BLOCK_RootFilesBlock:
-            memcpy(BlockBuffer, FirmwareFileEntries, sizeof(FirmwareFileEntries));
+            memcpy(BlockBuffer, &FirmwareFileEntries, sizeof(FirmwareFileEntries));
             break;
 
         default:
@@ -213,7 +218,7 @@ void vfs_write_fat12(const uint16_t block_idx, uint8_t* input_block_buffer) {
 
         case DISK_BLOCK_RootFilesBlock:
             /* Copy over the updated directory entries */
-            memcpy(FirmwareFileEntries, input_block_buffer, sizeof(FirmwareFileEntries));
+            memcpy(&FirmwareFileEntries, input_block_buffer, sizeof(FirmwareFileEntries));
             break;
         default:
             ReadWriteFLASHFileBlock(block_idx, input_block_buffer, false);

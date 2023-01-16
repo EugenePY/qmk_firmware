@@ -113,7 +113,6 @@ static const USBDescriptor* getDescriptor(USBDriver* usbp, uint8_t type, uint8_t
 
     return 0;
 }
-#define CBW_EPSIZE 31
 
 /* Handles global events of the USB driver */
 static void usbEvent(USBDriver* usbp, usbevent_t event) {
@@ -168,6 +167,6 @@ void msd_protocol_setup(void) {
 
     // reconfig the USB
     usbStart(UMSD1.config->usbp, &msd_usbConfig);
-    wait_ms(50);
+    wait_ms(1000);
     usbConnectBus(UMSD1.config->usbp);
 }
