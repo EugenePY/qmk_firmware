@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID 0x4B59  // KY
 #define PRODUCT_ID 0x4d4f // MO
 #define DEVICE_VER 0x0000
-#define MANUFACTURER PlayKeyboradxKeeBoyzLab
-#define PRODUCT ModelOLED
+#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
+#define PRODUCT "ModelOLED"
 #define SERIAL_NUMBER "playkeyboad:model-oled"
 
 // key matrix size

@@ -81,9 +81,12 @@ REGION_ALIAS("BSS_RAM", ram0);
 /* RAM region to be used for the default heap.*/
 REGION_ALIAS("HEAP_RAM", ram0);
 
+/* define the eeprom base address */
+__oled_img_base_address__ = ORIGIN(flash1);
+__oled_img_flash_size__ = LENGTH(flash1); 
+__oled_img_end_address__ = __oled_img_base_address__ + __oled_img_flash_size__;
+
 /* Generic rules inclusion.*/
 INCLUDE rules.ld
 
-/* define the eeprom base address */
-__oled_img_base_address = origin(flash1);
-__oled_img_flash_size = length(flash1); 
+

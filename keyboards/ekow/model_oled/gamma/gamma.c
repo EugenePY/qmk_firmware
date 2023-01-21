@@ -34,16 +34,15 @@ void keyboard_post_init_user(void) {
 #endif
 }
 
+void early_hardware_init_post(void) {
+    if_requested_model_oled_flash();
+}
+
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case KC_IMG:
-#ifdef OLED_ENABLE
-#    ifndef QMK_MCU_STM32F072
-            chEvtBroadcastFlags(&oled_event_source, FLASHING_EVT);
-#    else
-            model_oled_img_flash_set();
-#    endif
-#endif
+            model_oled_flash_img_jump();
         default:
             return true; // Process all other keycodes normally
     }

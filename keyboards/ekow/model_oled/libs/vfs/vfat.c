@@ -5,12 +5,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include "vfat.h"
-#include "legacy_flash_ops.h"
 
 // defined in the linker script.
-uint32_t __oled_img_base_address;
+extern char __oled_img_base_address__;
+extern uint16_t __oled_img_flash_size__;
+extern char __oled_img_end_address__;
 
-#define FLASH_BASE_ADDR __oled_img_base_address
+#define FLASH_BASE_ADDR &__oled_img_base_address__
 #define FLASH_ADDR(offset) (FLASH_BASE_ADDR + (offset))
 #define FLASH_PTR(offset) ((__IO uint8_t*)FLASH_ADDR(offset))
 #define FLASH_BYTE(loc, offset) (*(FLASH_PTR(((uint32_t)loc) + ((uint32_t)offset))))
@@ -158,16 +159,12 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBu
     if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return;
 
     if (Read) {
-        for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++) {
+        for (uint32_t i = 0; i < SECTOR_SIZE_BYTES; i++) {
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
         }
     } else {
-        FLASH_Unlock();
-        for (uint16_t i = 0; i < SECTOR_SIZE_BYTES - 1; i += 2) {
-            uint16_t halfw = (uint16_t)BlockBuffer[i] | ((uint16_t)BlockBuffer[i + 1]) << 8;
-            FLASH_ProgramHalfWord((FLASH_BYTE(FlashAddress, i)), halfw);
-        }
-        FLASH_Lock();
+        // for (uint16_t i = 0; i < SECTOR_SIZE_BYTES - 1; i += 2) {
+        // }
     }
     /* Write out the mapped block of data to the device's FLASH */
     // flashProgram(&flash_driver, FlashAddress, SECTOR_SIZE_BYTES, BlockBuffer);

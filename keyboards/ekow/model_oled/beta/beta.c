@@ -34,12 +34,21 @@ void keyboard_post_init_user(void) {
 #endif
 }
 
+void early_hardware_init_post(void) {
+#ifdef OLED_ENABLE
+    if_requested_model_oled_flash();
+#endif
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case KC_IMG:
-            chEvtBroadcastFlags(&oled_event_source, FLASHING_EVT);
+#ifdef OLED_ENABLE
+            model_oled_flash_img_jump();
+#endif
         default:
             return true; // Process all other keycodes normally
     }
     return true;
 }
+

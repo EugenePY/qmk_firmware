@@ -658,7 +658,7 @@ void msdStart(USBMassStorageDriver *msdp, const USBMassStorageConfig *config) {
     /* set the initial state */
     msdp->state = MSD_IDLE;
     // run the thread
-    msdp->thread = chThdCreateStatic(mass_storage_thread_wa, sizeof(mass_storage_thread_wa), NORMALPRIO - 1, /* Initial priority.    */
+    msdp->thread = chThdCreateStatic(mass_storage_thread_wa, sizeof(mass_storage_thread_wa), NORMALPRIO +2, /* Initial priority.    */
                                      mass_storage_thread,                                                    /* Thread function.     */
                                      msdp);                                                                  /* Thread parameter.    */
 

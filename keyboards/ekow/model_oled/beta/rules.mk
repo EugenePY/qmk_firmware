@@ -1,6 +1,7 @@
 # MCU name
 MCU = STM32F411
 BOARD = BLACKPILL_STM32_F411
+MCU_LDSCRIPT = oled
 
 PROJECT_PATH = keyboards/ekow/model_oled
 PROJECT_LIB_PATH = $(PROJECT_PATH)/libs
@@ -35,8 +36,6 @@ SOLENOIDE_ENABLE = yes
 OLED_ENABLE = yes
 
 ifeq ($(OLED_ENABLE), yes)
-
-	EEPROM_DRIVER = vendor
 	OLED_DRIVER = custom
 	include $(PROJECT_LIB_PATH)/oled.mk
 endif
@@ -45,3 +44,8 @@ ifeq ($(SOLENOIDE_ENABLE), yes)
 	HAPTIC_ENABLE = yes
 	HAPTIC_DRIVER += SOLENOID
 endif
+
+CUSTOM_MATRIX = yes
+# project specific files
+SRC += matrix.c
+

@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID 0x4B59  // KY
 #define PRODUCT_ID 0x4d4f // MO
 #define DEVICE_VER 0x0000
-#define MANUFACTURER PlayKeyboradxKeeBoyzLab
-#define PRODUCT ModelOLED
+#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
+#define PRODUCT "ModelOLED"
 #define SERIAL_NUMBER "playkeyboad:model-oled"
 
 // key matrix size
@@ -33,31 +33,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIX_COLS 17
 
 // ModelOLED default pin-out
+// P9, B2 cannot server as keymap pins but can serve as gpio.
+// B12 caa only serve as rows.
 #define MATRIX_ROW_PINS \
-    { C13, C14, C15, B7, A6, A2 }
+    { C13, C14, C15, B7, B12, B2} // TODO: Need to fix this.
 #define MATRIX_COL_PINS \
-    { B0, B10, B11, A10, A9, A8, B15, B13, B14, A15, B4, B5, B6, B9, B8, A0, A1 }
+    { B0, B10, A6, A10, A9, A8, A2, B14, B15, A15, B3, B5, B6, B9, B8, A0, A1 }
 
 #define USB_MAX_POWER_CONSUMPTION 500
+
 /*
- * Keyboard Matrix Assignments
- *
- * Change this to how you wired your keyboard
- * COLS: AVR pins used for columns, left to right
- * ROWS: AVR pins used for rows, top to bottom
- * DIODE_DIRECTION: COL2ROW = COL = Anode (+), ROW = Cathode (-, marked on diode)
- *                  ROW2COL = ROW = Anode (+), COL = Cathode (-, marked on diode)
- *
- */
+#* Keyboard Matrix Assignments
+#*
+#* Change this to how you wired your keyboard
+#* COLS: AVR pins used for columns, left to right
+#* ROWS: AVR pins used for rows, top to bottom
+#* DIODE_DIRECTION: COL2ROW = COL = Anode (+), ROW = Cathode (-, marked on diode)
+#*                  ROW2COL = ROW = Anode (+), COL = Cathode (-, marked on diode)
+#*
+#*/
 /* COL2ROW, ROW2COL */
+
 #define DIODE_DIRECTION COL2ROW
 #define DEBOUNCE 3
 
 #ifdef SOLENOID_ENABLE
-#    define SOLENOID_PIN B3
+#    define SOLENOID_PIN C12
 #    define SOLENOID_ACTIVE true
 #    define SOLENOID_DEFAULT_DWELL 75
 #endif
+
 /* internal eeprom  size */
 #ifdef OLED_ENABLE
 #    define EECONFIG_USER_DATA_SIZE OLED_DISPLAY_HEIGHT* OLED_DISPLAY_WIDTH

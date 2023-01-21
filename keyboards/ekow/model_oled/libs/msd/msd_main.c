@@ -1,9 +1,12 @@
-#include "ch.h"
-#include "hal.h"
 #include <stdio.h>
 #include <string.h>
+
 #include <stdio.h>
+
+#include <ch.h>
+#include <hal.h>
 #include "quantum.h"
+
 #include "usb_msd.h"
 #include "usb_main.h"
 #include "storage.h"
@@ -38,7 +41,7 @@ static const uint8_t configurationDescriptorData[] = {
                            1,    /* value that selects this configuration                    */
                            0,    /* index of string descriptor describing this configuration */
                            0xC0, /* attributes (self-powered)                                */
-                           50    /* max power (100 mA)                                       */
+                           250   /* max power (100 mA)                                       */
                            ),
 
     /* interface descriptor */
@@ -75,7 +78,7 @@ static const uint8_t languageDescriptorData[] = {
 static const USBDescriptor languageDescriptor = {sizeof(languageDescriptorData), languageDescriptorData};
 
 /* Vendor descriptor */
-static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(31), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'P', 0, 'l', 0, 'a', 0, 'y', 0, 'K', 0, 'B', 0, 'x', 0, 'K', '0', 'e', '0', 'e', '0', 'B', '0', 'o', '0', 'y', '0', 'z', '0'};
+static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(30), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'P', 0, 'l', 0, 'a', 0, 'y', 0, 'K', 0, 'B', 0, 'x', 0, 'K', '0', 'e', '0', 'e', '0', 'B', '0', 'o', '0', 'y', '0', 'z', '0'};
 static const USBDescriptor vendorDescriptor       = {sizeof(vendorDescriptorData), vendorDescriptorData};
 
 /* Product descriptor */
@@ -137,7 +140,7 @@ static void usbEvent(USBDriver* usbp, usbevent_t event) {
 
 /* Configuration of the USB driver */
 
-USBConfig msd_usbConfig = {usbEvent, getDescriptor, msdRequestsHook, NULL};
+static USBConfig msd_usbConfig = {usbEvent, getDescriptor, msdRequestsHook, NULL};
 
 /* Turns on a LED when there is I/O activity on the USB port */
 static void usbActivity(bool_t active){
@@ -145,7 +148,7 @@ static void usbActivity(bool_t active){
 };
 /* USB mass storage configuration */
 
-const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "PKBxKB", "ModelOLED", "0.1"};
+const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "PKBxKBL", "ModelOLED", "0.1"};
 
 /* USB mass storage driver */
 USBMassStorageDriver UMSD1;
@@ -153,20 +156,31 @@ USBMassStorageDriver UMSD1;
 /* EEProm Block Device*/
 EEPROMDriver EEPROM1;
 
+extern void platform_setup(void);
 // Main Functions expose
+//
 void msd_protocol_setup(void) {
+    /* Wait until USB is active */
+    platform_setup();
+
+    usbObjectInit(UMSD1.config->usbp);
     /* initialize the USB mass storage driver */
     msdInit(&UMSD1);
     /* start the USB mass storage service */
     msdStart(&UMSD1, &msdConfig);
     eepromObjectInit(&EEPROM1);
     msdReady(&UMSD1, (BaseBlockDevice*)&EEPROM1);
-    /* trigger the reset event for the QMK usb handler*/
-    usbStop(UMSD1.config->usbp);
-    usbDisconnectBus(UMSD1.config->usbp);
 
-    // reconfig the USB
+    // start the USB
+    usbDisconnectBus(UMSD1.config->usbp);
+    usbStop(UMSD1.config->usbp);
     usbStart(UMSD1.config->usbp, &msd_usbConfig);
-    wait_ms(1000);
     usbConnectBus(UMSD1.config->usbp);
+
+    while (true) {
+        if (UMSD1.config->usbp->state == USB_ACTIVE) {
+            break;
+        }
+        wait_ms(50);
+    }
 }
