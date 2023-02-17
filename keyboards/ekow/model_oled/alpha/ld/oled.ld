@@ -15,19 +15,19 @@
 */
 
 /*
- * STM32F072xB memory setup.
+ * STM32F411xE memory setup.
  */
 MEMORY
 {
-    flash0 (rx) : org = 0x08000000, len = 128k - 16k
-    flash1 (rx) : org = 0x08000000 + 128k - 16k, len = 16k /* enumulated EEprom */
-    flash2 (rx) : org = 0x00000000, len = 0
+    flash0 (rx) : org = 0x08000000, len = 16k        /* Sector 0    - Init code as ROM bootloader assumes application starts here */
+    flash1 (rx) : org = 0x08004000, len = 16k        /* Sector 1    - Emulated eeprom */
+    flash2 (rx) : org = 0x08008000, len = 512k - 32k - 128k /* Sector 2..7 - Rest of firmware */
     flash3 (rx) : org = 0x00000000, len = 0
     flash4 (rx) : org = 0x00000000, len = 0
     flash5 (rx) : org = 0x00000000, len = 0
     flash6 (rx) : org = 0x00000000, len = 0
-    flash7 (rx) : org = 0x00000000, len = 0
-    ram0   (wx) : org = 0x20000000, len = 16k
+    flash7 (rx) : org = 0x08060000, len = 128k
+    ram0   (wx) : org = 0x20000000, len = 128k
     ram1   (wx) : org = 0x00000000, len = 0
     ram2   (wx) : org = 0x00000000, len = 0
     ram3   (wx) : org = 0x00000000, len = 0
@@ -45,23 +45,23 @@ REGION_ALIAS("VECTORS_FLASH", flash0);
 REGION_ALIAS("VECTORS_FLASH_LMA", flash0);
 
 /* Flash region to be used for constructors and destructors.*/
-REGION_ALIAS("XTORS_FLASH", flash0);
-REGION_ALIAS("XTORS_FLASH_LMA", flash0);
+REGION_ALIAS("XTORS_FLASH", flash2);
+REGION_ALIAS("XTORS_FLASH_LMA", flash2);
 
 /* Flash region to be used for code text.*/
-REGION_ALIAS("TEXT_FLASH", flash0);
-REGION_ALIAS("TEXT_FLASH_LMA", flash0);
+REGION_ALIAS("TEXT_FLASH", flash2);
+REGION_ALIAS("TEXT_FLASH_LMA", flash2);
 
 /* Flash region to be used for read only data.*/
-REGION_ALIAS("RODATA_FLASH", flash0);
-REGION_ALIAS("RODATA_FLASH_LMA", flash0);
+REGION_ALIAS("RODATA_FLASH", flash2);
+REGION_ALIAS("RODATA_FLASH_LMA", flash2);
 
 /* Flash region to be used for various.*/
-REGION_ALIAS("VARIOUS_FLASH", flash0);
-REGION_ALIAS("VARIOUS_FLASH_LMA", flash0);
+REGION_ALIAS("VARIOUS_FLASH", flash2);
+REGION_ALIAS("VARIOUS_FLASH_LMA", flash2);
 
 /* Flash region to be used for RAM(n) initialization data.*/
-REGION_ALIAS("RAM_INIT_FLASH_LMA", flash0);
+REGION_ALIAS("RAM_INIT_FLASH_LMA", flash2);
 
 /* RAM region to be used for Main stack. This stack accommodates the processing
    of all exceptions and interrupts.*/
@@ -73,7 +73,7 @@ REGION_ALIAS("PROCESS_STACK_RAM", ram0);
 
 /* RAM region to be used for data segment.*/
 REGION_ALIAS("DATA_RAM", ram0);
-REGION_ALIAS("DATA_RAM_LMA", flash0);
+REGION_ALIAS("DATA_RAM_LMA", flash2);
 
 /* RAM region to be used for BSS segment.*/
 REGION_ALIAS("BSS_RAM", ram0);
@@ -81,9 +81,11 @@ REGION_ALIAS("BSS_RAM", ram0);
 /* RAM region to be used for the default heap.*/
 REGION_ALIAS("HEAP_RAM", ram0);
 
+/* define the eeprom base address */
+__oled_img_base_address__ = ORIGIN(flash7);
+__oled_img_flash_size__ = LENGTH(flash7); 
+__oled_img_end_address__ = __oled_img_base_address__ + __oled_img_flash_size__;
 /* Generic rules inclusion.*/
 INCLUDE rules.ld
 
-/* define the eeprom base address */
-_oled_eeprom_base_address = origin(flash1);
-_oled_eeprom_size = length(flash1); 
+

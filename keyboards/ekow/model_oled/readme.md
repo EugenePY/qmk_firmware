@@ -22,6 +22,13 @@ Enter the bootloader in 3 ways:
 * **Physical reset button**: Briefly press the Buttom on the back of the PCB, the board will enter the dfu-mode, no extra pads need to short.
 * **Keycode in layout**: Press the key mapped to `RESET` if it is available
 
-# RGB OLED
+# OLED MSD-IMAGE Drag-and-Drop
+
 ## How to replace the default image/animate
+
+For MacOS
+```shell
+rsync ${1} /Volumes/OLED_IMG/
+```
+For other user just using it as a normal usb drive.
 

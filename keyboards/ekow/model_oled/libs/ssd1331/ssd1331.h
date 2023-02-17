@@ -70,6 +70,10 @@ typedef struct {
 #define SSD1331_CMD_PRECHARGELEVEL 0xBB        //!< Set pre-charge voltage
 #define SSD1331_CMD_VCOMH 0xBE                 //!< Set Vcomh voltage
 
+bool is_oled_driver_actived(void);
+bool is_oled_driver_init(void);
+bool ssd1331_oled_setup_window(void);
+
 void ssd1331_oled_render(const uint8_t* img, uint16_t length);
 void oled_write_rgb_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b);
 void ssd1331_oled_write_raw_byte(const OLED_BUFFER_TYPE* data, uint16_t index);

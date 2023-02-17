@@ -362,20 +362,12 @@ static bool_t msd_scsi_process_send_diagnostic(USBMassStorageDriver *msdp) {
 static bool_t msd_do_write(USBMassStorageDriver *msdp, uint32_t start, uint16_t total) {
     /* get the first packet */
 
-    msd_start_receive(msdp, rw_buf[0], msdp->block_dev_info.blk_size);
-    msd_wait_for_isr(msdp);
-
     for (uint16_t i = 0; i < total; i++) {
-        if (i < (total - 1)) {
-            msd_start_receive(msdp, rw_buf[(i + 1) % 2], msdp->block_dev_info.blk_size);
-        }
-        if (!blkWrite(msdp->bbdp, start + i, rw_buf[(i + 1) % 2], 1)) {
+        msd_start_receive(msdp, rw_buf[i % 2], msdp->block_dev_info.blk_size);
+        msd_wait_for_isr(msdp);
+        if (!blkWrite(msdp->bbdp, start + i, rw_buf[i % 2], 1)) {
             msd_scsi_set_sense(msdp, SCSI_SENSE_KEY_MEDIUM_ERROR, SCSI_ASENSE_WRITE_FAULT, SCSI_ASENSEQ_NO_QUALIFIER);
             return FALSE;
-        }
-        if (i < (total - 1)) {
-            /* now wait for the USB event to complete */
-            msd_wait_for_isr(msdp);
         }
     }
     return TRUE;
@@ -658,7 +650,7 @@ void msdStart(USBMassStorageDriver *msdp, const USBMassStorageConfig *config) {
     /* set the initial state */
     msdp->state = MSD_IDLE;
     // run the thread
-    msdp->thread = chThdCreateStatic(mass_storage_thread_wa, sizeof(mass_storage_thread_wa), NORMALPRIO +2, /* Initial priority.    */
+    msdp->thread = chThdCreateStatic(mass_storage_thread_wa, sizeof(mass_storage_thread_wa), NORMALPRIO + 2, /* Initial priority.    */
                                      mass_storage_thread,                                                    /* Thread function.     */
                                      msdp);                                                                  /* Thread parameter.    */
 

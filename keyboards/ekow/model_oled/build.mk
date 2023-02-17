@@ -33,6 +33,7 @@ $(GTEST_OUTPUT)_DEFS :=
 $(GTEST_OUTPUT)_INC := $(GTEST_INC) $(GTEST_INTERNAL_INC)
 
 LDFLAGS += -lstdc++ -lpthread -shared-libgcc
+
 CREATE_MAP := no
 
 VPATH += \
@@ -41,6 +42,15 @@ VPATH += \
 	$(LIB_PATH)/printf
 
 all: elf
+
+gdb:
+	# Build qmk 
+	qmk --verbose compile -kb ekow/model_oled/beta -km default
+	# openocd flash
+	openocd -f ./keyboards/ekow/model_oled/tests/oled.cfg -c "program ekow_model_oled_beta_default.bin verify reset halt 0x08000000"
+
+
+	
 
 VPATH += $(COMMON_VPATH)
 PLATFORM:=TEST
@@ -76,3 +86,6 @@ include $(BUILDDEFS_PATH)/common_rules.mk
 
 $(shell mkdir -p $(BUILD_DIR)/test 2>/dev/null)
 $(shell mkdir -p $(TEST_OBJ) 2>/dev/null)
+
+
+

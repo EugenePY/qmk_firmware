@@ -15,47 +15,40 @@
  */
 #include "alpha.h"
 #include "stdbool.h"
-
-#ifdef SOLENOIDE_ENABLE
-#    include "solenoid.h"
-#endif
+#include "wait.h"
+#include "usb_util.h"
 
 #ifdef OLED_ENABLE
-#    include "ssd1331.h"
-#    include "img/icon.h"
-
-bool oled_task_kb(void) {
-    // render image data
-    oled_render();
-    return true;
-}
-
+#    include "oled_main.h"
 #endif
 
 void keyboard_pre_init_user(void) {
-    // Call the keyboard pre init code.
-#ifdef SOLENOIDE_ENABLE
-    solenoid_init();
-#endif
-
 #ifdef OLED_ENABLE
-    // current only support ROTAION_0
-    oled_init(OLED_ROTATION_0);
+    oled_task_init();
+#endif
+}
+
+void keyboard_post_init_user(void) {
+#ifdef CONSOLE_ENABLE
+    debug_enable = true;
+#endif
+}
+
+void early_hardware_init_post(void) {
+#ifdef OLED_ENABLE
+    if_requested_model_oled_flash();
 #endif
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        // Do something when pressed
-        solenoid_on();
-    } else {
-        // Do something else when release
-        solenoid_off();
-    }
     switch (keycode) {
-        case KC_SOL:
-            solenoid_driver_toggle();
-            return false; // Skip all further processing of this key
+        case KC_IMG:
+#ifdef OLED_ENABLE
+            model_oled_flash_img_jump();
+#endif
+        default:
+            return true; // Process all other keycodes normally
     }
     return true;
 }
+

@@ -4,12 +4,12 @@
 #define SPI_DRIVER SPID1
 #define SPI_SCK_PIN A5
 #define SPI_MOSI_PIN A7
-#define SPI_MISO_PIN NO_PIN // dont use MISO pin.
+#define SPI_MISO_PIN NO_PIN // MISO is useless in ssd1331 spi mode.
 #define SPI_SS_PIN A4
 
 /* OLED SPI Pins */
 #define OLED_SSD_1331_DC_PIN A3
-#define OLED_REST_PIN B12
+#define OLED_REST_PIN B13
 #define OLED_SHWN_PIN B1
 #define OLED_SS_PIN SPI_SS_PIN
 #define OLED_SPI_CLK_DIVISOR 16 /* Divisor for OLED */
@@ -19,6 +19,8 @@
 #define OLED_DISPLAY_96X64
 #define OLED_DISPLAY_WIDTH 96
 #define OLED_DISPLAY_HEIGHT 64
+#define OLED_DISPLAY_SIZE OLED_DISPLAY_WIDTH * OLED_DISPLAY_HEIGHT
+
 #define OLED_BUFFER_TYPE uint8_t
 #define OLED_MATRIX_SIZE (OLED_DISPLAY_HEIGHT / (sizeof(OLED_BUFFER_TYPE)) * OLED_DISPLAY_WIDTH)
 #define OLED_BLOCK_TYPE uint8_t

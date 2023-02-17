@@ -1,5 +1,6 @@
 #include "storage.h"
 #include "vfat.h"
+#include "wear_leveling.h"
 
 /* Forward declarations required by eeprom_vmt.*/
 static bool eeprom_is_card_inserted(void *instance);
@@ -68,7 +69,8 @@ static bool eeprom_get_info(void *instance, BlockDeviceInfo *bdip) {
     return true;
 }
 
-void eepromInit(void) {}
+void eepromInit(void) {
+}
 
 void eepromObjectInit(EEPROMDriver *driver) {
     driver->vmt   = &eeprom_vmt;

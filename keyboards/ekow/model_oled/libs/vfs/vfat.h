@@ -3,10 +3,16 @@
 #pragma once
 #include "vfsconf.h"
 
+// defined in the linker script.
+//
+extern uint32_t __oled_img_base_address__;
+
+#define FLASH_BASE_ADDR ((uint32_t)(&__oled_img_base_address__))
+
 #define PACK __attribute__((packed))
 
 #ifndef FLASH_FILE_SIZE_BYTES
-#    define FLASH_FILE_SIZE_BYTES 1024 * 16
+#    define FLASH_FILE_SIZE_BYTES 1024 * 128
 #endif
 
 /** Number of sectors that comprise a single logical disk cluster. */
@@ -39,7 +45,7 @@
 
 /** Total number of logical sectors/blocks on the disk. */
 // #define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
-#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 4
+#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 12
 
 /** Converts a given time in HH:MM:SS format to a FAT filesystem time.
  *
@@ -238,11 +244,23 @@ typedef union {
     } PACK MSDOS_Directory_new;
 } FATDirectoryEntry_t;
 
+typedef struct FATFile {
+    FATDirectoryEntry_t file_entry;
+    uint8_t*            buffer;
+} fat12file_t;
+
 // APIs
 // Read the data and return the fat12 format
 void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer);
 // Write the data block
 void vfs_write_fat12(const uint16_t block_idx, uint8_t* intput_block_buffer);
+
+// this initial the defualt fat12 file system.
+void fat12_init(const uintptr_t flash_address, uint16_t size);
+
+void fat12_create_file(const fat12file_t* file);
+
+void fat12_load_file(void);
 
 // each image is 96 * 64 * n_frame * 2 bytes
 void open_img(uint16_t block_idx, uint8_t* output_buffer);

@@ -67,7 +67,6 @@ bool STATIC ssd1331_spi_start(void) {
 spi_status_t STATIC _command_transaction(const uint8_t* command_data, uint16_t lenght) {
     writePinLow(OLED_SSD_1331_DC_PIN);
     spi_status_t result = SPI_STATUS_SUCCESS;
-
     if (ssd1331_spi_start()) {
         result = spi_transmit(command_data, lenght);
         spi_stop();
@@ -82,6 +81,7 @@ spi_status_t STATIC _command_transaction(const uint8_t* command_data, uint16_t l
 spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
     // pull the D/C pin high when sending data.
     writePinHigh(OLED_SSD_1331_DC_PIN);
+    wait_us(10);
     spi_status_t status = SPI_STATUS_SUCCESS;
     if (ssd1331_spi_start()) {
         // 65k format, uint16_t, lower byte, and upper byte.
@@ -92,9 +92,12 @@ spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
     }
     return status;
 }
-
+/*
+ *  this setup the render windown and reset the pixel cursor to upper left corner.
+ */
 spi_status_t STATIC _setup_render_window(void) {
-    const uint8_t command_buffer[] = {SSD1331_CMD_SETCOLUMN, 0x00, 0x5f, SSD1331_CMD_SETROW, 0x00, 0x3F};
+    const uint8_t command_buffer[] = {SSD1331_CMD_SETCOLUMN, 0x10, 0x4F, SSD1331_CMD_SETROW, 0x00, 0x2F};
+    wait_ms(50);
     return _command_transaction(command_buffer, 6);
 }
 
@@ -110,78 +113,87 @@ void STATIC nkk_oled_sw_reset_on(void) {
     // pull the OLED_RESET_PIN LOW, this pin is low as default.
     writePinLow(OLED_REST_PIN);
     // wait for minumnm of 3us, and then set to high
-    wait_us(10);
+    wait_ms(100);
     writePinHigh(OLED_REST_PIN);
+    wait_ms(50);
     // turn the OLED VCC power on
     writePinHigh(OLED_SHWN_PIN);
 };
 
-bool oled_init(oled_rotation_t rotation) {
-    spi_init();
-    // Setup OLED reset, chargin pump power ping.
-    setPinOutput(OLED_SHWN_PIN);
-    setPinOutput(OLED_REST_PIN);
-    setPinOutput(OLED_SSD_1331_DC_PIN);
-    // oled reset Initialization sequence sequence
-    nkk_oled_sw_reset_on();
-    // Initialization Configuration
-    spi_status_t result;
+bool is_oled_driver_actived(void) {
+    return oled_driver.oled_active;
+}
 
-    const uint8_t command_buffer[45] = {SSD1331_CMD_CONTRASTA,
-                                        0x1C,
-                                        SSD1331_CMD_CONTRASTB,
-                                        0x2E,
-                                        SSD1331_CMD_CONTRASTC,
-                                        0x2C,
-                                        SSD1331_CMD_PRECHARGEA,
-                                        0x4F,
-                                        SSD1331_CMD_PRECHARGEB,
-                                        0x74,
-                                        SSD1331_CMD_PRECHARGEC,
-                                        0x88,
-                                        SSD1331_CMD_MASTERCURRENT,
-                                        0x0F,
-                                        SSD1331_CMD_MASTERCURRENT,
-                                        0x0F,
-                                        SSD1331_CMD_SETREMAP,
-                                        0x68, // segment remap config= 0b01101000, Vertical Address Incremental, RAM col, RGB normal order. 65k color format1.
-                                        SSD1331_CMD_STARTLINE,
-                                        0x00,
-                                        SSD1331_CMD_DISPLAYOFFSET,
-                                        0x00,
-                                        SSD1331_CMD_NORMALDISPLAY,
-                                        SSD1331_CMD_SETMULTIPLEX,
-                                        0x3f,
-                                        SSD1331_CMD_DIMMODESETTING,
-                                        0x00,
-                                        0x0E,
-                                        0x17,
-                                        0x16,
-                                        0x12,
-                                        SSD1331_CMD_SETMASTER,
-                                        0x8E,
-                                        SSD1331_CMD_POWERMODE,
-                                        0x0B, // Power save mode
-                                        SSD1331_CMD_PRECHARGE,
-                                        0x17,
-                                        SSD1331_CMD_CLOCKDIV,
-                                        0xF0,
-                                        SSD1331_CMD_ENABLELINEARGRAYSCALE,
-                                        SSD1331_CMD_PRECHARGELEVEL,
-                                        0x1D,
-                                        SSD1331_CMD_VCOMH,
-                                        0x20,
-                                        SSD1331_CMD_DISPLAYON};
-    result                           = _command_transaction(command_buffer, 45);
-    _setup_render_window();
-    if (result == SPI_STATUS_SUCCESS) {
-        oled_driver.oled_initialized = true;
-    } else {
-        dprintf("oled_init() failed");
-        oled_driver.oled_initialized = false;
+bool oled_init(oled_rotation_t rotation) {
+    // hardware setup
+    if (!oled_driver.oled_initialized) {
+        spi_init();
+        // Setup OLED reset, chargin pump power ping.
+        setPinOutput(OLED_SHWN_PIN);
+        setPinOutput(OLED_REST_PIN);
+        setPinOutput(OLED_SSD_1331_DC_PIN);
+        // oled reset Initialization sequence sequence
+        nkk_oled_sw_reset_on();
+        // Initialization Configuration
+        spi_status_t result;
+
+        const uint8_t command_buffer[37] = {SSD1331_CMD_CONTRASTA,
+                                            0x15,
+                                            SSD1331_CMD_CONTRASTB,
+                                            0x1A,
+                                            SSD1331_CMD_CONTRASTC,
+                                            0x17,
+                                            SSD1331_CMD_MASTERCURRENT,
+                                            0x0F,
+                                            SSD1331_CMD_SETREMAP,
+                                            0x70, // segment remap config= 0b01101000, Vertical Address Incremental, RAM col, RGB normal order. 65k color format1.
+                                            SSD1331_CMD_STARTLINE,
+                                            0x00,
+                                            SSD1331_CMD_DISPLAYOFFSET,
+                                            0x10,
+                                            SSD1331_CMD_NORMALDISPLAY,
+                                            SSD1331_CMD_SETMULTIPLEX,
+                                            0x2F,
+                                            SSD1331_CMD_DIMMODESETTING,
+                                            0x00,
+                                            0x12,
+                                            0x0C,
+                                            0x14,
+                                            0x12,
+                                            SSD1331_CMD_SETMASTER,
+                                            0x8E,
+                                            SSD1331_CMD_POWERMODE,
+                                            0x0B, // Power save mode
+                                            SSD1331_CMD_PRECHARGE,
+                                            0x44,
+                                            SSD1331_CMD_CLOCKDIV,
+                                            0xA0,
+                                            SSD1331_CMD_ENABLELINEARGRAYSCALE,
+                                            SSD1331_CMD_PRECHARGELEVEL,
+                                            0x12,
+                                            SSD1331_CMD_VCOMH,
+                                            0x3E,
+                                            SSD1331_CMD_DISPLAYON}; // turn the display off by default.
+        result                           = _command_transaction(command_buffer, 37);
+        wait_ms(500);
+        ssd1331_oled_setup_window();
+
+        if (result == SPI_STATUS_SUCCESS) {
+            oled_driver.oled_initialized = true;
+        } else {
+            dprintf("oled_init() failed");
+            oled_driver.oled_initialized = false;
+        }
     }
     return oled_driver.oled_initialized;
 };
+bool ssd1331_oled_setup_window(void) {
+    return _setup_render_window() == SPI_STATUS_SUCCESS;
+}
+
+bool is_oled_driver_init(void) {
+    return oled_driver.oled_initialized;
+}
 
 bool oled_on(void) {
     if (oled_driver.oled_initialized) {
@@ -209,6 +221,17 @@ bool oled_off(void) {
     }
     return oled_driver.oled_active;
 }
+/* this command it the shutdown percedual suggeset in the datasheet, however
+ * in the kb applicaiton user just unplug the usb cable ....
+ * */
+bool oled_shutdown(void) {
+    if (oled_off()) {
+        writePinLow(OLED_SHWN_PIN);
+        return true;
+    } else {
+        return false;
+    }
+}
 
 void ssd1331_oled_render(const uint8_t* img, uint16_t length) {
     _data_write(img, length);
@@ -234,11 +257,6 @@ bool ssd1331_oled_write_window(uint8_t x, uint8_t y, uint8_t w, uint8_t h) {
         result                               = _data_write(block_buffer, w);
     }
     return result == SPI_STATUS_SUCCESS;
-}
-
-// Setup Brightness
-uint8_t oled_set_brightness(uint8_t level) {
-    return 0x00;
 }
 
 void oled_write_rgb_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {

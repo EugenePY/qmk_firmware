@@ -28,12 +28,6 @@ void keyboard_pre_init_user(void) {
 #endif
 }
 
-void keyboard_post_init_user(void) {
-#ifdef CONSOLE_ENABLE
-    debug_enable = true;
-#endif
-}
-
 void early_hardware_init_post(void) {
 #ifdef OLED_ENABLE
     if_requested_model_oled_flash();
@@ -51,4 +45,3 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
     return true;
 }
-

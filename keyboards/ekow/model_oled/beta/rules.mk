@@ -15,18 +15,20 @@ BOOTLOADER = stm32-dfu
 # Build Options
 #   change yes to no to disable
 #
-DEBUG = yes
 
 BOOTMAGIC_ENABLE = yes      # Enable Bootmagic Lite
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
 
-ifeq ($(DEBUG), yes)
-	DEBUG_ENABLE = yes
-	CONSOLE_ENABLE = yes
+SEMIHOST_ENABLE = yes
+
+ifeq ($(SEMIHOST_ENABLE), yes)
+	# Enable Semihosting
+	LDFLAGS += -specs=rdimon.specs -lc -lrdimon
+	OPT_DEFS += -DSEMIHOST_ENABLE
 endif
 
-COMMAND_ENABLE = yes        # Commands for debug and configuration
+
 NKRO_ENABLE = yes           # Enable N-Key Rollover
 BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 RGBLIGHT_ENABLE = no        # Enable keyboard RGB underglow
@@ -38,6 +40,8 @@ OLED_ENABLE = yes
 ifeq ($(OLED_ENABLE), yes)
 	OLED_DRIVER = custom
 	include $(PROJECT_LIB_PATH)/oled.mk
+	# image src 
+	SRC += $(PROJECT_PATH)/img/icon.c
 endif
 
 ifeq ($(SOLENOIDE_ENABLE), yes)
@@ -47,5 +51,5 @@ endif
 
 CUSTOM_MATRIX = yes
 # project specific files
-SRC += matrix.c
+SRC += alpha/matrix.c
 

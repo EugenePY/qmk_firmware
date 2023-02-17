@@ -22,8 +22,8 @@ static const uint8_t deviceDescriptorData[] = {USB_DESC_DEVICE(0x0200,     /* su
                                                                0x00,       /* device sub-class (none, specified in interface) */
                                                                0x00,       /* device protocol (none, specified in interface)  */
                                                                64,         /* max packet size of control end-point            */
-                                                               VENDOR_ID,  /* vendor ID (STMicroelectronics!)                 */
-                                                               PRODUCT_ID, /* product ID (STM32F407)                          */
+                                                               VENDOR_ID,  
+                                                               PRODUCT_ID,
                                                                DEVICE_VER, /* device release number                           */
                                                                1,          /* index of manufacturer string descriptor         */
                                                                2,          /* index of product string descriptor              */
@@ -41,7 +41,7 @@ static const uint8_t configurationDescriptorData[] = {
                            1,    /* value that selects this configuration                    */
                            0,    /* index of string descriptor describing this configuration */
                            0xC0, /* attributes (self-powered)                                */
-                           250   /* max power (100 mA)                                       */
+                           250   /* max power (500 mA)                                       */
                            ),
 
     /* interface descriptor */
@@ -158,16 +158,16 @@ EEPROMDriver EEPROM1;
 
 extern void platform_setup(void);
 // Main Functions expose
-//
+
 void msd_protocol_setup(void) {
     /* Wait until USB is active */
     platform_setup();
-
     usbObjectInit(UMSD1.config->usbp);
     /* initialize the USB mass storage driver */
     msdInit(&UMSD1);
     /* start the USB mass storage service */
     msdStart(&UMSD1, &msdConfig);
+    eepromInit();
     eepromObjectInit(&EEPROM1);
     msdReady(&UMSD1, (BaseBlockDevice*)&EEPROM1);
 

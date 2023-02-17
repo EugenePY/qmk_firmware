@@ -1,17 +1,13 @@
 #include <ch.h>
 #include <hal.h>
 #include <stdint.h>
+#include "quantum.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include "vfat.h"
+#include "flash.h"
 
-// defined in the linker script.
-extern char __oled_img_base_address__;
-extern uint16_t __oled_img_flash_size__;
-extern char __oled_img_end_address__;
-
-#define FLASH_BASE_ADDR &__oled_img_base_address__
 #define FLASH_ADDR(offset) (FLASH_BASE_ADDR + (offset))
 #define FLASH_PTR(offset) ((__IO uint8_t*)FLASH_ADDR(offset))
 #define FLASH_BYTE(loc, offset) (*(FLASH_PTR(((uint32_t)loc) + ((uint32_t)offset))))
@@ -23,11 +19,11 @@ static const FATBootBlock_t BootBlock = {
     .SectorsPerCluster     = SECTOR_PER_CLUSTER,
     .ReservedSectors       = 1,
     .FATCopies             = 2,
-    .RootDirectoryEntries  = ((SECTOR_SIZE_BYTES) / sizeof(FATDirectoryEntry_t)) * 1, // First 32 Bytes in sector
+    .RootDirectoryEntries  = ((SECTOR_SIZE_BYTES) / sizeof(FATDirectoryEntry_t)), // First 32 Bytes in sector
     .TotalSectors16        = LUN_MEDIA_BLOCKS,
     .MediaDescriptor       = 0xF8, // Unremovable
     .SectorsPerFAT         = 1,
-    .SectorsPerTrack       = (LUN_MEDIA_BLOCKS % 64), //
+    .SectorsPerTrack       = (LUN_MEDIA_BLOCKS % 64), // not greater than 64
     .Heads                 = (LUN_MEDIA_BLOCKS / 64),
     .HiddenSectors         = 0,
     .TotalSectors32        = 0,
@@ -39,59 +35,64 @@ static const FATBootBlock_t BootBlock = {
 };
 
 /** FAT 8.3 style directory entry, for the virtual FLASH contents file. */
-static FATDirectoryEntry_t FirmwareFileEntries[] = {
-    /* Root volume label entry; disk label is contained in the Filename and
-     * Extension fields (concatenated) with a special attribute flag - other
-     * fields are ignored. Should be the same as the label in the boot block.
-     */
-    [DISK_FILE_ENTRY_VolumeID] = {.MSDOS_Directory =
-                                      {
-                                          .Name            = "OLED IMG  ",
-                                          .Attributes      = FAT_FLAG_VOLUME_NAME,
-                                          .Reserved        = {0},
-                                          .CreationTime    = 0,
-                                          .CreationDate    = 0,
-                                          .StartingCluster = 0,
-                                          .Reserved2       = 0,
-                                      }},
+static FATDirectoryEntry_t
+    FirmwareFileEntries[SECTOR_SIZE_BYTES / sizeof(FATDirectoryEntry_t)] =
+        {
+            /* Root volume label entry; disk label is contained in the Filename and
+             * Extension fields (concatenated) with a special attribute flag - other
+             * fields are ignored. Should be the same as the label in the boot block.
+             */
+            [DISK_FILE_ENTRY_VolumeID] = {.MSDOS_Directory =
+                                              {
+                                                  .Name            = "OLED IMG  ",
+                                                  .Attributes      = FAT_FLAG_VOLUME_NAME,
+                                                  .Reserved        = {0},
+                                                  .CreationTime    = 0,
+                                                  .CreationDate    = 0,
+                                                  .StartingCluster = 0,
+                                                  .Reserved2       = 0,
+                                              }},
 
-    /* VFAT Long File Name entry for the virtual firmware file; required to
-     * prevent corruption from systems that are unable to detect the device
-     * as being a legacy MSDOS style FAT12 volume. */
-    [DISK_FILE_ENTRY_FLASH_LFN] = {.VFAT_LongFileName =
-                                       {
-                                           .Ordinal   = 1 | FAT_ORDINAL_LAST_ENTRY,
-                                           .Attribute = FAT_FLAG_LONG_FILE_NAME,
-                                           .Reserved1 = 0,
-                                           .Reserved2 = 0,
+            /* VFAT Long File Name entry for the virtual firmware file; required to
+             * prevent corruption from systems that are unable to detect the device
+             * as being a legacy MSDOS style FAT12 volume. */
+            [DISK_FILE_ENTRY_FLASH_LFN] = {.VFAT_LongFileName =
+                                               {
+                                                   .Ordinal   = 1 | FAT_ORDINAL_LAST_ENTRY,
+                                                   .Attribute = FAT_FLAG_LONG_FILE_NAME,
+                                                   .Reserved1 = 0,
+                                                   .Reserved2 = 0,
 
-                                           .Checksum  = FAT_CHECKSUM('F', 'L', 'A', 'S', 'H', ' ', ' ', ' ', 'B', 'I', 'N'),
-                                           .Unicode1  = 'F',
-                                           .Unicode2  = 'L',
-                                           .Unicode3  = 'A',
-                                           .Unicode4  = 'S',
-                                           .Unicode5  = 'H',
-                                           .Unicode6  = '.',
-                                           .Unicode7  = 'B',
-                                           .Unicode8  = 'I',
-                                           .Unicode9  = 'N',
-                                           .Unicode10 = 0,
-                                           .Unicode11 = 0,
-                                           .Unicode12 = 0,
-                                           .Unicode13 = 0,
-                                       }},
+                                                   .Checksum  = FAT_CHECKSUM('O', 'L', 'E', 'D', ' ', ' ', ' ', ' ', 'I', 'M', 'G'),
+                                                   .Unicode1  = 'O',
+                                                   .Unicode2  = 'L',
+                                                   .Unicode3  = 'E',
+                                                   .Unicode4  = 'D',
+                                                   .Unicode5  = '.',
+                                                   .Unicode6  = 'I',
+                                                   .Unicode7  = 'M',
+                                                   .Unicode8  = 'G',
+                                                   .Unicode9  = 0,
+                                                   .Unicode10 = 0,
+                                                   .Unicode11 = 0,
+                                                   .Unicode12 = 0,
+                                                   .Unicode13 = 0,
+                                               }},
 
-    /* MSDOS file entry for the virtual Firmware image. */
-    [DISK_FILE_ENTRY_FLASH_MSDOS] = {.MSDOS_File = {
-                                         .Filename        = "FLASH   ",
-                                         .Extension       = "BIN",
-                                         .Attributes      = 0,
-                                         .Reserved        = {0},
-                                         .CreationTime    = FAT_TIME(1, 1, 0),
-                                         .CreationDate    = FAT_DATE(14, 2, 1989),
-                                         .StartingCluster = 2,
-                                         .FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
-                                     }}};
+            /* MSDOS file entry for the virtual Firmware image. */
+            [DISK_FILE_ENTRY_FLASH_MSDOS] = {.MSDOS_File =
+                                                 {
+                                                     .Filename        = "OLED    ",
+                                                     .Extension       = "IMG",
+                                                     .Attributes      = 0,
+                                                     .Reserved        = {0},
+                                                     .CreationTime    = FAT_TIME(1, 1, 0),
+                                                     .CreationDate    = FAT_DATE(14, 2, 2023),
+                                                     .StartingCluster = 2,
+                                                     .FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
+                                                 }}
+
+};
 
 /** Starting cluster of the virtual FLASH.BIN file on disk, tracked so that the
  *  offset from the start of the data sector can be determined. On Windows
@@ -163,12 +164,14 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBu
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
         }
     } else {
-        // for (uint16_t i = 0; i < SECTOR_SIZE_BYTES - 1; i += 2) {
-        // }
-    }
-    /* Write out the mapped block of data to the device's FLASH */
-    // flashProgram(&flash_driver, FlashAddress, SECTOR_SIZE_BYTES, BlockBuffer);
+        if ((FlashAddress % flashSectorSize(7)) == 0) {
+            flashSectorErase(7);
+        }
+        // need to check the zero value.
+        flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);
+    } /* Write out the mapped block of data to the device's FLASH */
 }
+
 void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
     uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
     memset(BlockBuffer, 0x00, SECTOR_SIZE_BYTES);
@@ -195,7 +198,7 @@ void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
             break;
 
         case DISK_BLOCK_RootFilesBlock:
-            memcpy(BlockBuffer, &FirmwareFileEntries, sizeof(FirmwareFileEntries));
+            memcpy(BlockBuffer, FirmwareFileEntries, sizeof(FirmwareFileEntries));
             break;
 
         default:
@@ -215,13 +218,39 @@ void vfs_write_fat12(const uint16_t block_idx, uint8_t* input_block_buffer) {
 
         case DISK_BLOCK_RootFilesBlock:
             /* Copy over the updated directory entries */
-            memcpy(&FirmwareFileEntries, input_block_buffer, sizeof(FirmwareFileEntries));
+            memcpy(FirmwareFileEntries, input_block_buffer, sizeof(FirmwareFileEntries));
             break;
         default:
             ReadWriteFLASHFileBlock(block_idx, input_block_buffer, false);
             break;
     }
 }
+/*
+ * Format the default FS.
+ */
+void fat12_format(const uintptr_t flash_addr, uint16_t size) {
+    // Erase the flash address
+    flashErase(flash_addr, size);
+
+    for (uint16_t block_idx = 0; block_idx < LUN_MEDIA_BLOCKS; block_idx++) {
+        uint8_t block_buffer[SECTOR_SIZE_BYTES];
+        switch (block_idx) {
+            case DISK_BLOCK_BootBlock:
+            case DISK_BLOCK_FATBlock2:
+            case DISK_BLOCK_FATBlock1:
+                // write Flash
+                ReadWriteFLASHFileBlock(block_idx, block_buffer, false);
+                break;
+            case DISK_BLOCK_RootFilesBlock:
+                break;
+                // default image is size is 64 * 48 * 2
+        }
+    }
+};
+
+/** this will perform size check.
+ */
+void fat12_create_file(const fat12file_t* file) {}
 
 // Read the image from flash
 void open_img(uint16_t idx, uint8_t* output_buffer) {
