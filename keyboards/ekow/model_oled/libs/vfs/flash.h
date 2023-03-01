@@ -5,23 +5,29 @@
 #include <hal.h>
 #include <stdint.h>
 
+#define CH_SUCCESS true
+#define CH_FAILED false
+
 /**
  * @brief Number of sectors in the flash memory.
  */
 #if !defined(FLASH_SECTOR_COUNT) || defined(__DOXYGEN__)
-#define FLASH_SECTOR_COUNT 12
+#    define FLASH_SECTOR_COUNT 12
 #endif
 
 /* Error codes */
 
 /** @brief Flash operation successful */
-#define FLASH_RETURN_SUCCESS CH_SUCCESS
 
 /** @brief Flash operation error because of denied access, corrupted memory.*/
-#define FLASH_RETURN_NO_PERMISSION -1
 
 /** @brief Flash operation error because of bad flash, corrupted memory */
-#define FLASH_RETURN_BAD_FLASH -11
+
+typedef enum {
+    FLASH_RETURN_SUCCESS       = CH_SUCCESS,
+    FLASH_RETURN_NO_PERMISSION = -1,
+    FLASH_RETURN_BAD_FLASH     = -11,
+} RFLASH;
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,22 +47,22 @@ extern "C" {
  */
 // Warning, flashdata_t must be unsigned!!!
 #if defined(STM32F4XX) || defined(__DOXYGEN__)
-#define FLASH_CR_PSIZE_MASK         FLASH_CR_PSIZE_0 | FLASH_CR_PSIZE_1
-#if ((STM32_VDD >= 270) && (STM32_VDD <= 360)) || defined(__DOXYGEN__)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_1
+#    define FLASH_CR_PSIZE_MASK FLASH_CR_PSIZE_0 | FLASH_CR_PSIZE_1
+#    if ((STM32_VDD >= 270) && (STM32_VDD <= 360)) || defined(__DOXYGEN__)
+#        define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_1
 typedef uint32_t flashdata_t;
-#elif (STM32_VDD >= 240) && (STM32_VDD < 270)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_0
+#    elif (STM32_VDD >= 240) && (STM32_VDD < 270)
+#        define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_0
 typedef uint16_t flashdata_t;
-#elif (STM32_VDD >= 210) && (STM32_VDD < 240)
-#define FLASH_CR_PSIZE_VALUE        FLASH_CR_PSIZE_0
+#    elif (STM32_VDD >= 210) && (STM32_VDD < 240)
+#        define FLASH_CR_PSIZE_VALUE FLASH_CR_PSIZE_0
 typedef uint16_t flashdata_t;
-#elif (STM32_VDD >= 180) && (STM32_VDD < 210)
-#define FLASH_CR_PSIZE_VALUE        ((uint32_t)0x00000000)
+#    elif (STM32_VDD >= 180) && (STM32_VDD < 210)
+#        define FLASH_CR_PSIZE_VALUE ((uint32_t)0x00000000)
 typedef uint8_t flashdata_t;
-#else
-#error "invalid VDD voltage specified"
-#endif
+#    else
+#        error "invalid VDD voltage specified"
+#    endif
 #endif /* defined(STM32F4XX) */
 
 /** @brief Address in the flash memory */

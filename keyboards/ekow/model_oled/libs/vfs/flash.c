@@ -1,10 +1,6 @@
 #include "flash.h"
 #include <string.h>
 
-#define CH_SUCCESS true
-#define CH_FAILED false
-
-
 size_t flashSectorSize(flashsector_t sector) {
     if (sector >= 0 && sector <= 3)
         return 16 * 1024;

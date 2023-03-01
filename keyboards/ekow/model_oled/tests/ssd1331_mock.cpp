@@ -45,5 +45,4 @@ bool spi_start(pin_t slavePin, bool lsbFirst, uint8_t mode, uint16_t divisor) {
     return spi_driver->spi_start_mock(slavePin, lsbFirst, mode, divisor);
 }
 
-void wait_us(uint16_t duration) {}
 

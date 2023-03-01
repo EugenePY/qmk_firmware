@@ -5,10 +5,6 @@
 
 // defined in the linker script.
 //
-extern uint32_t __oled_img_base_address__;
-
-#define FLASH_BASE_ADDR ((uint32_t)(&__oled_img_base_address__))
-
 #define PACK __attribute__((packed))
 
 #ifndef FLASH_FILE_SIZE_BYTES
@@ -45,7 +41,7 @@ extern uint32_t __oled_img_base_address__;
 
 /** Total number of logical sectors/blocks on the disk. */
 // #define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
-#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 12
+#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) //+ 12
 
 /** Converts a given time in HH:MM:SS format to a FAT filesystem time.
  *

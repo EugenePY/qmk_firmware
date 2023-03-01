@@ -1,9 +1,10 @@
+#include <stdio.h>
+
 #include "ssd1331.h"
-#include "printf.h"
 #include "debug.h"
+#include "wait.h"
 
 #ifndef OLED_TEST
-#    include "wait.h"
 #    include "gpio.h"
 #    include "spi_master.h"
 #else
@@ -28,8 +29,7 @@
 
 #define RGB565(r, g, b) RGB565_BITMASK_R_16bit(r) | RGB565_BITMASK_G_16bit(g) | RGB565_BITMASK_B_16bit(b)
 
-OLED_BUFFER_TYPE oled_buffer[OLED_MATRIX_SIZE];
-
+uint8_t oled_buffer[1] = {0};
 oled_driver_t oled_driver = {.oled_cursor = &oled_buffer[0], .oled_scrolling = false, .oled_initialized = false, .oled_active = false, .oled_rotation_width = OLED_DISPLAY_WIDTH, .oled_dirty = 0};
 
 /*
@@ -136,46 +136,94 @@ bool oled_init(oled_rotation_t rotation) {
         nkk_oled_sw_reset_on();
         // Initialization Configuration
         spi_status_t result;
-
-        const uint8_t command_buffer[37] = {SSD1331_CMD_CONTRASTA,
-                                            0x15,
-                                            SSD1331_CMD_CONTRASTB,
-                                            0x1A,
-                                            SSD1331_CMD_CONTRASTC,
-                                            0x17,
-                                            SSD1331_CMD_MASTERCURRENT,
-                                            0x0F,
-                                            SSD1331_CMD_SETREMAP,
-                                            0x70, // segment remap config= 0b01101000, Vertical Address Incremental, RAM col, RGB normal order. 65k color format1.
-                                            SSD1331_CMD_STARTLINE,
-                                            0x00,
-                                            SSD1331_CMD_DISPLAYOFFSET,
-                                            0x10,
-                                            SSD1331_CMD_NORMALDISPLAY,
-                                            SSD1331_CMD_SETMULTIPLEX,
-                                            0x2F,
-                                            SSD1331_CMD_DIMMODESETTING,
-                                            0x00,
-                                            0x12,
-                                            0x0C,
-                                            0x14,
-                                            0x12,
-                                            SSD1331_CMD_SETMASTER,
-                                            0x8E,
-                                            SSD1331_CMD_POWERMODE,
-                                            0x0B, // Power save mode
-                                            SSD1331_CMD_PRECHARGE,
-                                            0x44,
-                                            SSD1331_CMD_CLOCKDIV,
-                                            0xA0,
-                                            SSD1331_CMD_ENABLELINEARGRAYSCALE,
-                                            SSD1331_CMD_PRECHARGELEVEL,
-                                            0x12,
-                                            SSD1331_CMD_VCOMH,
-                                            0x3E,
-                                            SSD1331_CMD_DISPLAYON}; // turn the display off by default.
-        result                           = _command_transaction(command_buffer, 37);
-        wait_ms(500);
+        // OPCode, Dely, n data
+        uint8_t initialize_seq[] = {SSD1331_CMD_CONTRASTA,
+                                    5,
+                                    1,
+                                    0x15,
+                                    SSD1331_CMD_CONTRASTB,
+                                    5,
+                                    1,
+                                    0x1A,
+                                    SSD1331_CMD_CONTRASTC,
+                                    5,
+                                    1,
+                                    0x17,
+                                    SSD1331_CMD_MASTERCURRENT,
+                                    5,
+                                    1,
+                                    0x0F,
+                                    SSD1331_CMD_SETREMAP,
+                                    5,
+                                    1,
+                                    0x70, // segment remap config= 0b01101000, Vertical Address Incremental, RAM col, RGB normal order. 65k color format1.
+                                    SSD1331_CMD_STARTLINE,
+                                    5,
+                                    1,
+                                    0x00,
+                                    SSD1331_CMD_DISPLAYOFFSET,
+                                    5,
+                                    1,
+                                    0x10,
+                                    SSD1331_CMD_NORMALDISPLAY,
+                                    5,
+                                    0,
+                                    SSD1331_CMD_SETMULTIPLEX,
+                                    5,
+                                    1,
+                                    0x2F,
+                                    SSD1331_CMD_DIMMODESETTING,
+                                    5,
+                                    5,
+                                    0x00,
+                                    0x12,
+                                    0x0C,
+                                    0x14,
+                                    0x12,
+                                    SSD1331_CMD_SETMASTER,
+                                    5,
+                                    1,
+                                    0x8E,
+                                    SSD1331_CMD_POWERMODE,
+                                    5,
+                                    1,
+                                    0x0B, // Power save mode
+                                    SSD1331_CMD_PRECHARGE,
+                                    5,
+                                    1,
+                                    0x44,
+                                    SSD1331_CMD_CLOCKDIV,
+                                    5,
+                                    1,
+                                    0xA0,
+                                    SSD1331_CMD_ENABLELINEARGRAYSCALE,
+                                    5,
+                                    0,
+                                    SSD1331_CMD_PRECHARGELEVEL,
+                                    5,
+                                    1,
+                                    0x12,
+                                    SSD1331_CMD_VCOMH,
+                                    5,
+                                    1,
+                                    0x3E,
+                                    SSD1331_CMD_DISPLAYON,
+                                    5,
+                                    0}; // turn the display off by default.
+        // Total 18 cmd
+        uint8_t j = 0;
+        for (uint8_t i = 0; i < 18; i++) {
+            uint8_t size  = initialize_seq[j + 2] + 1;
+            uint8_t delay = initialize_seq[j + 1];
+            uint8_t buffer[size];
+            buffer[0] = initialize_seq[j];
+            if (size > 1) {
+                memcpy(&buffer[1], &initialize_seq[j + 3], size);
+            }
+            result = _command_transaction(buffer, size);
+            wait_ms(delay);
+            j += size;
+        }
         ssd1331_oled_setup_window();
 
         if (result == SPI_STATUS_SUCCESS) {
@@ -235,28 +283,6 @@ bool oled_shutdown(void) {
 
 void ssd1331_oled_render(const uint8_t* img, uint16_t length) {
     _data_write(img, length);
-}
-
-// get the correpoding color of given buffer index.
-bool ssd1331_oled_write_window(uint8_t x, uint8_t y, uint8_t w, uint8_t h) {
-    x = MAX(MIN(x, OLED_DISPLAY_WIDTH), 0x00);
-    y = MAX(MIN(y, OLED_DISPLAY_HEIGHT), 0x00);
-    w = MAX(w - 1, 0x00);
-    h = MAX(w - 1, 0x00);
-    w = MIN(w, OLED_DISPLAY_WIDTH - w);
-    h = MIN(h, OLED_DISPLAY_HEIGHT - h);
-
-    spi_status_t result = SPI_STATUS_SUCCESS;
-    // sending the command
-    const uint8_t command_buffer[6] = {SSD1331_CMD_SETCOLUMN, 0x0, w, SSD1331_CMD_SETROW, 0x0, h};
-    result                          = _command_transaction(command_buffer, 6);
-
-    // col based indexing
-    for (int r = y; r < h; r++) {
-        const OLED_BUFFER_TYPE* block_buffer = &oled_buffer[OLED_DISPLAY_WIDTH * r + x];
-        result                               = _data_write(block_buffer, w);
-    }
-    return result == SPI_STATUS_SUCCESS;
 }
 
 void oled_write_rgb_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {

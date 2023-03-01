@@ -37,7 +37,7 @@ K40,      K01,           K50,           K51,      K41,                 K52, K54,
 }
 
 enum OLED_80_KEYCODES { 
-    KC_TOGGLE_SOLENOIDE = SAFE_RANGE,
+    KC_SOLENOIDE_TOGGLE = SAFE_RANGE,
     KC_ENTER_FLASH_IMG
 };
 

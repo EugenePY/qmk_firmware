@@ -1,6 +1,5 @@
 MODULE = MSD
-$(MODULE)_SRC += $(PROJECT_LIB_PATH)/msd/mass_storage/usb_msd.c \
-				 $(PROJECT_LIB_PATH)/msd/mass_storage/storage.c
+$(MODULE)_SRC += $(PROJECT_LIB_PATH)/msd/mass_storage/usb_msd.c
 
 $(MODULE)_INC += $(PROJECT_LIB_PATH)/msd \
 				 $(PROJECT_LIB_PATH)/msd/mass_storage

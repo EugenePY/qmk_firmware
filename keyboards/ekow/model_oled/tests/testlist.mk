@@ -1,2 +1,0 @@
-TEST_LIST += ssd1331
-

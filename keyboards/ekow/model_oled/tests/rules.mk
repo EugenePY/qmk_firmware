@@ -8,3 +8,9 @@ ssd1331_INC := $(PROJECT_PATH)/tests $(PROJECT_PATH)/libs/ssd1331 \
 			   $(DRIVER_PATH)/oled 
 				
 ssd1331_DEFS := -DOLED_TEST
+
+
+## test fatfs
+include $(PROJECT_PATH)/tests/fatfs_test.mk 
+
+

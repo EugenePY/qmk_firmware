@@ -20,14 +20,20 @@ BOOTMAGIC_ENABLE = yes      # Enable Bootmagic Lite
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
 
-SEMIHOST_ENABLE = yes
+SEMIHOST_ENABLE = no
 
 ifeq ($(SEMIHOST_ENABLE), yes)
 	# Enable Semihosting
-	LDFLAGS += -specs=rdimon.specs -lc -lrdimon
+	CFLAGS += -specs=rdimon.specs -lc -lrdimon
 	OPT_DEFS += -DSEMIHOST_ENABLE
 endif
 
+DEBUG = no
+ifeq ($(DEBUG), yes)
+	DEBUG_ENABLE = yes
+	CONSOLE_ENABLE = yes
+	COMMAND_ENABLE = yes        # Commands for debug and configuration
+endif
 
 NKRO_ENABLE = yes           # Enable N-Key Rollover
 BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality

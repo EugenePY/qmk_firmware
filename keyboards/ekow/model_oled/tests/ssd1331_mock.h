@@ -63,9 +63,6 @@ spi_status_t spi_receive(uint8_t* data, uint16_t length);
 
 void spi_stop(void);
 
-// wait us
-void wait_us(uint16_t duration);
-
 #ifdef __cplusplus
 };
 #endif

@@ -9,7 +9,8 @@
 
 #include "usb_msd.h"
 #include "usb_main.h"
-#include "storage.h"
+#include "flash_ioblock.h"
+
 /* endpoint index */
 
 #define USB_MS_DATA_EP 1
@@ -17,18 +18,16 @@
 #define MASS_STORAGE_OUT_EPADDR ((USB_MS_DATA_EP) | (0x00))
 
 /* USB device descriptor */
-static const uint8_t deviceDescriptorData[] = {USB_DESC_DEVICE(0x0200,     /* supported USB version (2.0)                     */
-                                                               0x00,       /* device class (none, specified in interface)     */
-                                                               0x00,       /* device sub-class (none, specified in interface) */
-                                                               0x00,       /* device protocol (none, specified in interface)  */
-                                                               64,         /* max packet size of control end-point            */
-                                                               VENDOR_ID,  
-                                                               PRODUCT_ID,
-                                                               DEVICE_VER, /* device release number                           */
-                                                               1,          /* index of manufacturer string descriptor         */
-                                                               2,          /* index of product string descriptor              */
-                                                               3,          /* index of serial number string descriptor        */
-                                                               1           /* number of possible configurations               */
+static const uint8_t deviceDescriptorData[] = {USB_DESC_DEVICE(0x0200,                            /* supported USB version (2.0)                     */
+                                                               0x00,                              /* device class (none, specified in interface)     */
+                                                               0x00,                              /* device sub-class (none, specified in interface) */
+                                                               0x00,                              /* device protocol (none, specified in interface)  */
+                                                               64,                                /* max packet size of control end-point            */
+                                                               VENDOR_ID, PRODUCT_ID, DEVICE_VER, /* device release number                           */
+                                                               1,                                 /* index of manufacturer string descriptor         */
+                                                               2,                                 /* index of product string descriptor              */
+                                                               3,                                 /* index of serial number string descriptor        */
+                                                               1                                  /* number of possible configurations               */
                                                                )};
 
 static const USBDescriptor deviceDescriptor = {sizeof(deviceDescriptorData), deviceDescriptorData};
@@ -153,8 +152,8 @@ const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActi
 /* USB mass storage driver */
 USBMassStorageDriver UMSD1;
 
-/* EEProm Block Device*/
-EEPROMDriver EEPROM1;
+/* Flash Block Device*/
+FLASHDriver* flash_block_device_ptr;
 
 extern void platform_setup(void);
 // Main Functions expose
@@ -165,11 +164,12 @@ void msd_protocol_setup(void) {
     usbObjectInit(UMSD1.config->usbp);
     /* initialize the USB mass storage driver */
     msdInit(&UMSD1);
+
     /* start the USB mass storage service */
     msdStart(&UMSD1, &msdConfig);
-    eepromInit();
-    eepromObjectInit(&EEPROM1);
-    msdReady(&UMSD1, (BaseBlockDevice*)&EEPROM1);
+    flashInit();
+    flash_block_device_ptr = get_flashObject();
+    msdReady(&UMSD1, (BaseBlockDevice*)flash_block_device_ptr);
 
     // start the USB
     usbDisconnectBus(UMSD1.config->usbp);
