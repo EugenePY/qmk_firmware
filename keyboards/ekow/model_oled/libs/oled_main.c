@@ -94,22 +94,30 @@ void create_default_file(void) {
 }
 
 void oled_task_init(void) {
-    /*
-    BYTE buffer[512];
     memset(buffer, 0x11, 512);
     disk_initialize(0);
     disk_write(0, buffer, 67, 1);
     BYTE buffer_read[512];
     disk_read(0, buffer_read, 67, 1);
     bool res_test = false;
-    for (int i =0; i < 512; i++) {
+    for (int i = 0; i < 512; i++) {
         res_test = buffer_read[i] == buffer[i];
         res_test = buffer[i] == 0x11;
-        if (!res_test) break;
+        if (!res_test) chSysHalt("wrong1");
+
     }
-    if (!res_test) chSysHalt("wrong");
+
+    memset(buffer, 0x13, 512);
+    disk_initialize(0);
+    disk_write(0, buffer, 67, 1);
+    disk_read(0, buffer_read, 67, 1);
+    res_test = false;
+    for (int i = 0; i < 512; i++) {
+        res_test = buffer_read[i] == buffer[i];
+        res_test = buffer_read[i] == 0x13;
+        if (!res_test) chSysHalt("wrong");
+    }
     chSysHalt("halt for testing");
-    */
 
     FRESULT res = f_mount(&fs, "", 1);
     if (res != FR_OK) {
