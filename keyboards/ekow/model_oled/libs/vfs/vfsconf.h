@@ -6,6 +6,6 @@
 extern uint32_t __oled_img_base_address__; // this is define in the linker script
 extern uint32_t __oled_img_end_address__;
 
-#define FLASH_BASE_ADDR ((uint32_t)(0x08020000))
+#define FLASH_BASE_ADDR ((uint32_t)(&__oled_img_base_address__))
 #define FLASH_END_ADDR  ((uint32_t)(&__oled_img_end_address__))
 

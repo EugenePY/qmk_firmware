@@ -48,9 +48,13 @@ void keyboard_pre_init_user(void) {
 #ifdef SEMIHOST_ENABLE
     semihosting_write_string("hello world!\n");
 #endif
+}
+
+void keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
     oled_task_init();
 #endif
+
 }
 
 void early_hardware_init_post(void) {

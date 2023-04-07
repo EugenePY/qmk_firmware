@@ -12,7 +12,7 @@
 #define OLED_REST_PIN B13
 #define OLED_SHWN_PIN B1
 #define OLED_SS_PIN SPI_SS_PIN
-#define OLED_SPI_CLK_DIVISOR 32 /* Divisor for OLED */
+#define OLED_SPI_CLK_DIVISOR 8 /* Divisor for OLED */
 
 // OLED Hardware Defines
 // OLED-Switch, oled driver configuration

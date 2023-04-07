@@ -41,12 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define USB_MAX_POWER_CONSUMPTION 500
 
-// Wear-leveling Embeded Flash Config
-/* internal eeprom  size */
-#ifdef OLED_ENABLE
-#    define EECONFIG_USER_DATA_SIZE OLED_DISPLAY_HEIGHT* OLED_DISPLAY_WIDTH
-#endif
-
 /*
 #* Keyboard Matrix Assignments
 #*

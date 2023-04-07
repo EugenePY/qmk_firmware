@@ -41,6 +41,7 @@ enum OLED_80_KEYCODES {
     KC_ENTER_FLASH_IMG
 };
 
+
 // alias
 #define KC_SOL KC_TOGGLE_SOLENOIDE
 #define KC_IMG KC_ENTER_FLASH_IMG

@@ -240,24 +240,20 @@ typedef union {
     } PACK MSDOS_Directory_new;
 } FATDirectoryEntry_t;
 
-typedef struct FATFile {
-    FATDirectoryEntry_t file_entry;
-    uint8_t*            buffer;
-} fat12file_t;
-
 // APIs
 // Read the data and return the fat12 format
 void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer);
 // Write the data block
 void vfs_write_fat12(const uint16_t block_idx, uint8_t* intput_block_buffer);
 
-// this initial the defualt fat12 file system.
-void fat12_init(const uintptr_t flash_address, uint16_t size);
-
-void fat12_create_file(const fat12file_t* file);
-
-void fat12_load_file(void);
-
 // each image is 96 * 64 * n_frame * 2 bytes
-void open_img(uint16_t block_idx, uint8_t* output_buffer);
-void close_img(void);
+//
+//
+typedef struct {
+    uint32_t start_addr;
+    size_t   n_frame; // frame size is img_buffer_size(64*48 *2 bytes);
+} img_t;
+
+void img_init(void);
+void img_update(bool is_updpated, bool is_dirty, size_t n_frame);
+void get_current_img(img_t* img);

@@ -21,11 +21,11 @@ MEMORY
 {
     flash0 (rx) : org = 0x08000000, len = 16k        /* Sector 0    - Init code as ROM bootloader assumes application starts here */
     flash1 (rx) : org = 0x08004000, len = 16k        /* Sector 1    - Emulated eeprom */
-    flash2 (rx) : org = 0x08008000, len = 512k - 32k - 128k /* Sector 2..7 - Rest of firmware */
+    flash2 (rx) : org = 0x08008000, len = 512k - 32k - 384k /* Sector 2..7 - Rest of firmware */
     flash3 (rx) : org = 0x00000000, len = 0
     flash4 (rx) : org = 0x00000000, len = 0
-    flash5 (rx) : org = 0x00000000, len = 0
-    flash6 (rx) : org = 0x00000000, len = 0
+    flash5 (rx) : org = 0x08020000, len = 128k
+    flash6 (rx) : org = 0x08040000, len = 128k
     flash7 (rx) : org = 0x08060000, len = 128k
     ram0   (wx) : org = 0x20000000, len = 128k
     ram1   (wx) : org = 0x00000000, len = 0
@@ -82,8 +82,8 @@ REGION_ALIAS("BSS_RAM", ram0);
 REGION_ALIAS("HEAP_RAM", ram0);
 
 /* define the eeprom base address */
-__oled_img_base_address__ = ORIGIN(flash7);
-__oled_img_flash_size__ = LENGTH(flash7); 
+__oled_img_base_address__ = ORIGIN(flash5);
+__oled_img_flash_size__ = LENGTH(flash5) +  LENGTH(flash6) + LENGTH(flash7);
 __oled_img_end_address__ = __oled_img_base_address__ + __oled_img_flash_size__;
 /* Generic rules inclusion.*/
 INCLUDE rules.ld

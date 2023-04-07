@@ -29,8 +29,8 @@
 
 #define RGB565(r, g, b) RGB565_BITMASK_R_16bit(r) | RGB565_BITMASK_G_16bit(g) | RGB565_BITMASK_B_16bit(b)
 
-uint8_t oled_buffer[1] = {0};
-oled_driver_t oled_driver = {.oled_cursor = &oled_buffer[0], .oled_scrolling = false, .oled_initialized = false, .oled_active = false, .oled_rotation_width = OLED_DISPLAY_WIDTH, .oled_dirty = 0};
+uint8_t       oled_buffer[1] = {0};
+oled_driver_t oled_driver    = {.oled_cursor = &oled_buffer[0], .oled_scrolling = false, .oled_initialized = false, .oled_active = false, .oled_rotation_width = OLED_DISPLAY_WIDTH, .oled_dirty = 0};
 
 /*
  * Do not initial the MISO
@@ -69,11 +69,13 @@ spi_status_t STATIC _command_transaction(const uint8_t* command_data, uint16_t l
     spi_status_t result = SPI_STATUS_SUCCESS;
     if (ssd1331_spi_start()) {
         result = spi_transmit(command_data, lenght);
+        writePinHigh(OLED_SSD_1331_DC_PIN);
         spi_stop();
     } else {
         result = SPI_STATUS_ERROR;
     }
     writePinHigh(OLED_SSD_1331_DC_PIN);
+    spi_stop();
     return result;
 };
 
@@ -81,7 +83,6 @@ spi_status_t STATIC _command_transaction(const uint8_t* command_data, uint16_t l
 spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
     // pull the D/C pin high when sending data.
     writePinHigh(OLED_SSD_1331_DC_PIN);
-    wait_us(10);
     spi_status_t status = SPI_STATUS_SUCCESS;
     if (ssd1331_spi_start()) {
         // 65k format, uint16_t, lower byte, and upper byte.
@@ -90,6 +91,7 @@ spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
     } else {
         status = SPI_STATUS_ERROR;
     }
+    spi_stop();
     return status;
 }
 /*
@@ -97,7 +99,6 @@ spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
  */
 spi_status_t STATIC _setup_render_window(void) {
     const uint8_t command_buffer[] = {SSD1331_CMD_SETCOLUMN, 0x10, 0x4F, SSD1331_CMD_SETROW, 0x00, 0x2F};
-    wait_ms(50);
     return _command_transaction(command_buffer, 6);
 }
 
@@ -113,9 +114,9 @@ void STATIC nkk_oled_sw_reset_on(void) {
     // pull the OLED_RESET_PIN LOW, this pin is low as default.
     writePinLow(OLED_REST_PIN);
     // wait for minumnm of 3us, and then set to high
-    wait_ms(100);
+    wait_ms(5);
     writePinHigh(OLED_REST_PIN);
-    wait_ms(50);
+    wait_ms(5);
     // turn the OLED VCC power on
     writePinHigh(OLED_SHWN_PIN);
 };
@@ -207,9 +208,9 @@ bool oled_init(oled_rotation_t rotation) {
                                     5,
                                     1,
                                     0x3E,
-                                    SSD1331_CMD_DISPLAYON,
+                                    SSD1331_CMD_DISPLAYOFF,
                                     5,
-                                    0}; // turn the display off by default.
+                                    0};
         // Total 18 cmd
         uint8_t j = 0;
         for (uint8_t i = 0; i < 18; i++) {
@@ -222,9 +223,9 @@ bool oled_init(oled_rotation_t rotation) {
             }
             result = _command_transaction(buffer, size);
             wait_ms(delay);
-            j += size;
+            j += size + 2;
         }
-        ssd1331_oled_setup_window();
+        wait_ms(10);
 
         if (result == SPI_STATUS_SUCCESS) {
             oled_driver.oled_initialized = true;

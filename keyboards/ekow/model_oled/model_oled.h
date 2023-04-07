@@ -25,3 +25,12 @@
 #elif defined(KEYBOARD_ekow_model_oled_gamma)
 #    include "gamma.h"
 #endif
+
+typedef union {
+    uint32_t raw;
+    struct {
+        bool   img_is_empty : 1;
+        bool   is_dirty : 1;
+        size_t n_frame : 1;
+    };
+} user_config_t;

@@ -7,10 +7,17 @@
 #include <string.h>
 #include "vfat.h"
 #include "flash.h"
+#include "eeconfig.h"
+
+#include "model_oled.h"
+#include "img/icon.h"
 
 #define FLASH_ADDR(offset) (FLASH_BASE_ADDR + (offset))
 #define FLASH_PTR(offset) ((__IO uint8_t*)FLASH_ADDR(offset))
+
 #define FLASH_BYTE(loc, offset) (*(FLASH_PTR(((uint32_t)loc) + ((uint32_t)offset))))
+
+extern user_config_t user_config;
 
 static const FATBootBlock_t BootBlock = {
     .Bootstrap             = {0xEB, 0x3C, 0x90},
@@ -164,11 +171,22 @@ static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBu
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
         }
     } else {
-        if ((FlashAddress % flashSectorSize(7)) == 0) {
+        // erase sector at the begining of write
+        if ((FlashAddress % flashSectorSize(5)) == 0) {
+            flashSectorErase(5);
+        } else if ((FlashAddress % flashSectorSize(6)) == 0) {
+            flashSectorErase(6);
+        } else if ((FlashAddress % flashSectorSize(7)) == 0) {
             flashSectorErase(7);
         }
+
         // need to check the zero value.
         flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);
+        // update the user_config_t as dirty (n frame need to be update)
+        user_config.raw      = eeconfig_read_user();
+        user_config.is_dirty = true;
+        eeconfig_update_user(user_config.raw);
+
     } /* Write out the mapped block of data to the device's FLASH */
 }
 
@@ -226,39 +244,73 @@ void vfs_write_fat12(const uint16_t block_idx, uint8_t* input_block_buffer) {
     }
 }
 /*
- * Format the default FS.
- */
-void fat12_format(const uintptr_t flash_addr, uint16_t size) {
-    // Erase the flash address
-    flashErase(flash_addr, size);
+static void img_empty_check(void) {
+    uint8_t  input_block_buffer[SECTOR_SIZE_BYTES];
+    ReadWriteFLASHFileBlock(block_idx, input_block_buffer, true);
+}
+*/
+// Read the image from flash
 
-    for (uint16_t block_idx = 0; block_idx < LUN_MEDIA_BLOCKS; block_idx++) {
-        uint8_t block_buffer[SECTOR_SIZE_BYTES];
-        switch (block_idx) {
-            case DISK_BLOCK_BootBlock:
-            case DISK_BLOCK_FATBlock2:
-            case DISK_BLOCK_FATBlock1:
-                // write Flash
-                ReadWriteFLASHFileBlock(block_idx, block_buffer, false);
-                break;
-            case DISK_BLOCK_RootFilesBlock:
-                break;
-                // default image is size is 64 * 48 * 2
+void img_init(void) {
+    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+    user_config.raw         = eeconfig_read_user();
+    if (user_config.img_is_empty) {
+        // write the default img to the address
+        size_t   size      = IMG_BUFFER_SIZE;
+        uint16_t block_idx = FileStartBlock;
+        uint8_t  input_block_buffer[SECTOR_SIZE_BYTES];
+
+        while (size > 0) {
+            size_t n = MIN(size, SECTOR_SIZE_BYTES);
+            memset(input_block_buffer, 0, SECTOR_SIZE_BYTES);
+            memcpy(input_block_buffer, &img[IMG_BUFFER_SIZE - size], n);
+            ReadWriteFLASHFileBlock(block_idx, input_block_buffer, false);
+            size -= n;
+            ++block_idx;
+        }
+        img_update(true, 0, 1);
+    }
+}
+
+static size_t get_img_frame(uint8_t* start_addr) {
+    size_t   n_frame   = 0;
+    size_t   size      = 0;
+    bool stop = false;
+    while (!stop) {
+        if ((*start_addr != 0xff) | (size > 6144 * 30)) {
+            stop = true;
+        } else {
+            ++size;
+        }
+        if ((size % IMG_BUFFER_SIZE == 0) | stop) {
+            ++n_frame;
         }
     }
-};
+    return n_frame;
+}
 
-/** this will perform size check.
- */
-void fat12_create_file(const fat12file_t* file) {}
+void img_update(bool is_updated, bool is_dirty, size_t n_frame) {
+    // should be call when the user updated the image
+    user_config.raw          = eeconfig_read_user();
+    user_config.img_is_empty = !is_updated;
+    user_config.n_frame      = n_frame;
+    user_config.is_dirty     = is_dirty;
+    eeconfig_update_user(user_config.raw);
+}
 
-// Read the image from flash
-void open_img(uint16_t idx, uint8_t* output_buffer) {
-    FATDirectoryEntry_t* img_file_info = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS];
-    uint32_t             img_size      = img_file_info->MSDOS_File.FileSizeBytes;
-
-    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
-    uint16_t block_idx      = FileStartBlock + idx % (FILE_SECTORS(img_size) - 1);
-
-    ReadWriteFLASHFileBlock(block_idx, output_buffer, true);
+void get_current_img(img_t* img_ptr) {
+    user_config.raw = eeconfig_read_user();
+    if (user_config.img_is_empty) {
+        // write the default img to the address
+        img_ptr->start_addr = (uint32_t)&img;
+        img_ptr->n_frame    = 1;
+    } else {
+        img_ptr->start_addr = FLASH_BASE_ADDR;
+        if (user_config.is_dirty) {
+            user_config.n_frame  = get_img_frame((uint8_t*)FLASH_BASE_ADDR);
+            user_config.is_dirty = false;
+            eeconfig_update_user(user_config.raw);
+        }
+        img_ptr->n_frame = user_config.n_frame;
+    }
 }
