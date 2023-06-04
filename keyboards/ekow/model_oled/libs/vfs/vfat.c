@@ -17,6 +17,8 @@
 
 #define FLASH_BYTE(loc, offset) (*(FLASH_PTR(((uint32_t)loc) + ((uint32_t)offset))))
 
+#define FLASHFileStartCluster 2
+
 extern user_config_t user_config;
 
 static const FATBootBlock_t BootBlock = {
@@ -95,7 +97,7 @@ static FATDirectoryEntry_t
                                                      .Reserved        = {0},
                                                      .CreationTime    = FAT_TIME(1, 1, 0),
                                                      .CreationDate    = FAT_DATE(14, 2, 2023),
-                                                     .StartingCluster = 2,
+                                                     .StartingCluster = FLASHFileStartCluster,
                                                      .FileSizeBytes   = FLASH_FILE_SIZE_BYTES,
                                                  }}
 
@@ -106,7 +108,7 @@ static FATDirectoryEntry_t
  *  systems files are usually replaced using the original file's disk clusters,
  *  while Linux appears to overwrite with an offset which must be compensated for.
  */
-static const uint16_t* FLASHFileStartCluster = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.StartingCluster;
+// static const uint16_t* FLASHFileStartCluster = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.StartingCluster;
 
 /** Updates a FAT12 cluster entry in the FAT file table with the specified next
  *  chain index. If the cluster is the last in the file chain, the magic value
@@ -158,7 +160,7 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable, const uint16_t Inde
 }
 
 static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer, const bool Read) {
-    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
     uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
     uint32_t FlashAddress = (uint32_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
@@ -212,7 +214,7 @@ void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
             UpdateFAT12ClusterEntry(BlockBuffer, 1, 0xFFF);
 
             /* Cluster 2 onwards: Cluster chain of FLASH.BIN */
-            UpdateFAT12ClusterChain(BlockBuffer, *FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
+            UpdateFAT12ClusterChain(BlockBuffer, FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
             break;
 
         case DISK_BLOCK_RootFilesBlock:
@@ -252,7 +254,7 @@ static void img_empty_check(void) {
 // Read the image from flash
 
 void img_init(void) {
-    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (*FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
+    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
     user_config.raw         = eeconfig_read_user();
     if (user_config.img_is_empty) {
         // write the default img to the address
@@ -273,9 +275,9 @@ void img_init(void) {
 }
 
 static size_t get_img_frame(uint8_t* start_addr) {
-    size_t   n_frame   = 0;
-    size_t   size      = 0;
-    bool stop = false;
+    size_t n_frame = 0;
+    size_t size    = 0;
+    bool   stop    = false;
     while (!stop) {
         if ((*start_addr != 0xff) | (size > 6144 * 30)) {
             stop = true;
