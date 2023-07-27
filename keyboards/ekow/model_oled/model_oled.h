@@ -16,21 +16,23 @@
 
 #pragma once
 
+#include "stdio.h"
+#include "stdint.h"
+
 #include "quantum.h"
 
 #if defined(KEYBOARD_ekow_model_oled_alpha)
 #    include "alpha.h"
 #elif defined(KEYBOARD_ekow_model_oled_beta)
 #    include "beta.h"
-#elif defined(KEYBOARD_ekow_model_oled_gamma)
-#    include "gamma.h"
 #endif
 
 typedef union {
     uint32_t raw;
     struct {
         bool   img_is_empty : 1;
-        bool   is_dirty : 1;
+        bool   is_dirty : 1; // if 1 the mcu will check the number of frame of the image
         size_t n_frame : 1;
     };
 } user_config_t;
+

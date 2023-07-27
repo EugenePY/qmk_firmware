@@ -13,7 +13,6 @@
 #define VALID_ADDR(addr) (addr < FLASH_END_ADDR) | (FLASH_BASE_ADDR <= addr)
 
 
-
 /**
  * @extends FlashBlockDevice
  *

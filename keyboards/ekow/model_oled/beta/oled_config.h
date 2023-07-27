@@ -2,31 +2,19 @@
 
 /* ChibiOS SPI definitions */
 #define SPI_DRIVER SPID1
-#define SPI_SCK_PIN A5
-#define SPI_MOSI_PIN A7
+#define SPI_SCK_PIN A5 // this should be the driver pin
+#define SPI_MOSI_PIN A7 // this should be the driver pin
 #define SPI_MISO_PIN NO_PIN // MISO is useless in ssd1331 spi mode.
-#define SPI_SS_PIN A4
+#define SPI_SS_PIN B1 // can be any gpio
 
 /* OLED SPI Pins */
-#define OLED_SSD_1331_DC_PIN A3
-#define OLED_REST_PIN B13
-#define OLED_SHWN_PIN B1
+#define OLED_SSD_1331_DC_PIN B0 // can be any gpio
+#define OLED_REST_PIN C13
+#define OLED_SHWN_PIN C14
 #define OLED_SS_PIN SPI_SS_PIN
-#define OLED_SPI_CLK_DIVISOR 8/* Divisor for OLED */
+#define OLED_SPI_CLK_DIVISOR 2 /* Divisor for OLED */
 
-// OLED Hardware Defines
-// OLED-Switch, oled driver configuration
-#define OLED_DISPLAY_96X64
-#define OLED_DISPLAY_WIDTH 96
-#define OLED_DISPLAY_HEIGHT 64
-#define OLED_DISPLAY_SIZE OLED_DISPLAY_WIDTH * OLED_DISPLAY_HEIGHT
-
-#define OLED_BUFFER_TYPE uint8_t
-#define OLED_MATRIX_SIZE (OLED_DISPLAY_HEIGHT / (sizeof(OLED_BUFFER_TYPE)) * OLED_DISPLAY_WIDTH)
-#define OLED_BLOCK_TYPE uint8_t
-#define OLED_BLOCK_COUNT (sizeof(OLED_BLOCK_TYPE) * 8) // 32 (compile time mathed)
-#define OLED_BLOCK_SIZE \
-    (OLED_MATRIX_SIZE / OLED_BLOCK_COUNT) // 32 (compile time mathed)
-                                          //
-
+#define OLED_WIDTH 64
+#define OLED_HEIGH 48
+#define OLED_BUFFER_SIZE OLED_WIDTH * OLED_HEIGH * 2
 #define USE_MSC_PROTOCOL true // use MSC for updating image/gif

@@ -24,7 +24,7 @@
 #endif
 
 typedef struct {
-    OLED_BUFFER_TYPE* oled_cursor;
+    uint8_t* oled_cursor;
     bool              oled_scrolling;
     bool              oled_initialized;
     bool              oled_active;

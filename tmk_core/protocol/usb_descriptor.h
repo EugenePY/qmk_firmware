@@ -292,9 +292,12 @@ enum usb_endpoints {
 #endif
 
 // TODO - ARM_ATSAM
+#define _H(x) #x
+#define _STR(x) _H(x)
 
 #if (NEXT_EPNUM - 1) > MAX_ENDPOINTS
-#    error There are not enough available endpoints to support all functions. Please disable one or more of the following: Mouse Keys, Extra Keys, Console, NKRO, MIDI, Serial, Steno
+#    error "There are not enough available endpoints to support all functions. Please disable one or more of the following: Mouse Keys, Extra Keys, Console, NKRO, MIDI, Serial, Steno"  
+#pragma message _STR(NEXT_EPNUM)
 #endif
 
 #define KEYBOARD_EPSIZE 8

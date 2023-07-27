@@ -53,11 +53,11 @@ static FATDirectoryEntry_t
              */
             [DISK_FILE_ENTRY_VolumeID] = {.MSDOS_Directory =
                                               {
-                                                  .Name            = "OLED IMG  ",
+                                                  .Name            = "MODEL OLED ",
                                                   .Attributes      = FAT_FLAG_VOLUME_NAME,
                                                   .Reserved        = {0},
-                                                  .CreationTime    = 0,
-                                                  .CreationDate    = 0,
+                                                  .CreationTime    = FAT_TIME(1, 1, 0),
+                                                  .CreationDate    = FAT_DATE(14, 2, 2023),
                                                   .StartingCluster = 0,
                                                   .Reserved2       = 0,
                                               }},
@@ -108,8 +108,6 @@ static FATDirectoryEntry_t
  *  systems files are usually replaced using the original file's disk clusters,
  *  while Linux appears to overwrite with an offset which must be compensated for.
  */
-// static const uint16_t* FLASHFileStartCluster = &FirmwareFileEntries[DISK_FILE_ENTRY_FLASH_MSDOS].MSDOS_File.StartingCluster;
-
 /** Updates a FAT12 cluster entry in the FAT file table with the specified next
  *  chain index. If the cluster is the last in the file chain, the magic value
  *  \c 0xFFF should be used.
@@ -159,42 +157,58 @@ static void UpdateFAT12ClusterChain(uint8_t* const FATTable, const uint16_t Inde
     }
 }
 
-static void ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer, const bool Read) {
+static int ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuffer, const bool Read) {
     uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
     uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
     uint32_t FlashAddress = (uint32_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
-    /* Range check the write request - abort if requested block is not within the
-     * virtual firmware file sector range */
-    if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return;
 
+    int res = CH_FAILED;
+    /* Range check the write request - abort if requested block is not within the
+     *
+     * virtual firmware file sector range */
+    if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return res;
     if (Read) {
         for (uint32_t i = 0; i < SECTOR_SIZE_BYTES; i++) {
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
         }
+        res = CH_SUCCESS;
     } else {
         // erase sector at the begining of write
         if ((FlashAddress % flashSectorSize(5)) == 0) {
-            flashSectorErase(5);
+            res = flashSectorErase(5);
         } else if ((FlashAddress % flashSectorSize(6)) == 0) {
-            flashSectorErase(6);
+            res = flashSectorErase(6);
         } else if ((FlashAddress % flashSectorSize(7)) == 0) {
-            flashSectorErase(7);
+            res = flashSectorErase(7);
         }
 
         // need to check the zero value.
-        flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);
+        res = flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);
         // update the user_config_t as dirty (n frame need to be update)
-        user_config.raw      = eeconfig_read_user();
-        user_config.is_dirty = true;
-        eeconfig_update_user(user_config.raw);
-
+        // user_config.raw      = eeconfig_read_user();
+        // user_config.is_dirty = true;
+        // eeconfig_update_user(user_config.raw);
     } /* Write out the mapped block of data to the device's FLASH */
+    return res;
+}
+static uint8_t FATBlock[SECTOR_SIZE_BYTES];
+
+void vfs_init(void) {
+    UpdateFAT12ClusterEntry(FATBlock, 0, 0xF00 | BootBlock.MediaDescriptor);
+
+    /* Cluster 1: Reserved */
+    UpdateFAT12ClusterEntry(FATBlock, 1, 0xFFF);
+
+    /* Cluster 2 onwards: Cluster chain of FLASH.BIN */
+    UpdateFAT12ClusterChain(FATBlock, FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
 }
 
-void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
+int vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
     uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
     memset(BlockBuffer, 0x00, SECTOR_SIZE_BYTES);
+
+    int res = CH_FAILED;
     switch (block_idx) {
         case DISK_BLOCK_BootBlock:
             memcpy(BlockBuffer, &BootBlock, sizeof(FATBootBlock_t));
@@ -202,48 +216,53 @@ void vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer) {
             /* Add the magic signature to the end of the block */
             BlockBuffer[SECTOR_SIZE_BYTES - 2] = 0x55;
             BlockBuffer[SECTOR_SIZE_BYTES - 1] = 0xAA;
-
+            res                                = CH_SUCCESS;
             break;
 
         case DISK_BLOCK_FATBlock1:
         case DISK_BLOCK_FATBlock2:
-            /* Cluster 0: Media type/Reserved */
-            UpdateFAT12ClusterEntry(BlockBuffer, 0, 0xF00 | BootBlock.MediaDescriptor);
-
-            /* Cluster 1: Reserved */
-            UpdateFAT12ClusterEntry(BlockBuffer, 1, 0xFFF);
-
-            /* Cluster 2 onwards: Cluster chain of FLASH.BIN */
-            UpdateFAT12ClusterChain(BlockBuffer, FLASHFileStartCluster, FILE_CLUSTERS(FLASH_FILE_SIZE_BYTES));
+            memcpy(BlockBuffer, FATBlock, SECTOR_SIZE_BYTES);
+            res = CH_SUCCESS;
             break;
-
         case DISK_BLOCK_RootFilesBlock:
-            memcpy(BlockBuffer, FirmwareFileEntries, sizeof(FirmwareFileEntries));
+            memcpy(BlockBuffer, FirmwareFileEntries, SECTOR_SIZE_BYTES);
+            res = CH_SUCCESS;
             break;
 
         default:
-            ReadWriteFLASHFileBlock(block_idx, BlockBuffer, true);
+            res = ReadWriteFLASHFileBlock(block_idx, BlockBuffer, true);
             break;
     }
-    memcpy(output_block_buffer, BlockBuffer, sizeof(BlockBuffer));
+    if (res == CH_SUCCESS) {
+        memcpy(output_block_buffer, BlockBuffer, sizeof(BlockBuffer));
+    }
+    return res;
 }
 
-void vfs_write_fat12(const uint16_t block_idx, uint8_t* input_block_buffer) {
+int vfs_write_fat12(const uint16_t block_idx, const uint8_t* input_block_buffer) {
+    int res = CH_FAILED;
     switch (block_idx) {
         case DISK_BLOCK_BootBlock:
+            /* Ignore writes to the boot*/
+            res = CH_SUCCESS;
+            break;
+
         case DISK_BLOCK_FATBlock2:
         case DISK_BLOCK_FATBlock1:
-            /* Ignore writes to the boot and FAT blocks */
+            memcpy(FATBlock, input_block_buffer, SECTOR_SIZE_BYTES);
+            res = CH_SUCCESS;
             break;
 
         case DISK_BLOCK_RootFilesBlock:
             /* Copy over the updated directory entries */
-            memcpy(FirmwareFileEntries, input_block_buffer, sizeof(FirmwareFileEntries));
+            memcpy(FirmwareFileEntries, input_block_buffer, SECTOR_SIZE_BYTES);
+            res = CH_SUCCESS;
             break;
         default:
-            ReadWriteFLASHFileBlock(block_idx, input_block_buffer, false);
+            res = ReadWriteFLASHFileBlock(block_idx, (uint8_t*)input_block_buffer, false);
             break;
     }
+    return res;
 }
 /*
 static void img_empty_check(void) {
@@ -252,67 +271,3 @@ static void img_empty_check(void) {
 }
 */
 // Read the image from flash
-
-void img_init(void) {
-    uint16_t FileStartBlock = DISK_BLOCK_DataStartBlock + (FLASHFileStartCluster - 2) * SECTOR_PER_CLUSTER;
-    user_config.raw         = eeconfig_read_user();
-    if (user_config.img_is_empty) {
-        // write the default img to the address
-        size_t   size      = IMG_BUFFER_SIZE;
-        uint16_t block_idx = FileStartBlock;
-        uint8_t  input_block_buffer[SECTOR_SIZE_BYTES];
-
-        while (size > 0) {
-            size_t n = MIN(size, SECTOR_SIZE_BYTES);
-            memset(input_block_buffer, 0, SECTOR_SIZE_BYTES);
-            memcpy(input_block_buffer, &img[IMG_BUFFER_SIZE - size], n);
-            ReadWriteFLASHFileBlock(block_idx, input_block_buffer, false);
-            size -= n;
-            ++block_idx;
-        }
-        img_update(true, 0, 1);
-    }
-}
-
-static size_t get_img_frame(uint8_t* start_addr) {
-    size_t n_frame = 0;
-    size_t size    = 0;
-    bool   stop    = false;
-    while (!stop) {
-        if ((*start_addr != 0xff) | (size > 6144 * 30)) {
-            stop = true;
-        } else {
-            ++size;
-        }
-        if ((size % IMG_BUFFER_SIZE == 0) | stop) {
-            ++n_frame;
-        }
-    }
-    return n_frame;
-}
-
-void img_update(bool is_updated, bool is_dirty, size_t n_frame) {
-    // should be call when the user updated the image
-    user_config.raw          = eeconfig_read_user();
-    user_config.img_is_empty = !is_updated;
-    user_config.n_frame      = n_frame;
-    user_config.is_dirty     = is_dirty;
-    eeconfig_update_user(user_config.raw);
-}
-
-void get_current_img(img_t* img_ptr) {
-    user_config.raw = eeconfig_read_user();
-    if (user_config.img_is_empty) {
-        // write the default img to the address
-        img_ptr->start_addr = (uint32_t)&img;
-        img_ptr->n_frame    = 1;
-    } else {
-        img_ptr->start_addr = FLASH_BASE_ADDR;
-        if (user_config.is_dirty) {
-            user_config.n_frame  = get_img_frame((uint8_t*)FLASH_BASE_ADDR);
-            user_config.is_dirty = false;
-            eeconfig_update_user(user_config.raw);
-        }
-        img_ptr->n_frame = user_config.n_frame;
-    }
-}

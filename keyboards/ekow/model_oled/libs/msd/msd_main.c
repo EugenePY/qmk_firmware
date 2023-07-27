@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-
 #include <stdio.h>
+#include <stdint.h>
 
 #include <ch.h>
 #include <hal.h>
@@ -18,7 +18,7 @@
 #define MASS_STORAGE_OUT_EPADDR ((USB_MS_DATA_EP) | (0x00))
 
 /* USB device descriptor */
-static const uint8_t deviceDescriptorData[] = {USB_DESC_DEVICE(0x0200,                            /* supported USB version (2.0)                     */
+static const uint8_t deviceDescriptorData[] = {USB_DESC_DEVICE(0x021,                             /* supported USB/WebUSB version (2.0)                     */
                                                                0x00,                              /* device class (none, specified in interface)     */
                                                                0x00,                              /* device sub-class (none, specified in interface) */
                                                                0x00,                              /* device protocol (none, specified in interface)  */
@@ -34,16 +34,16 @@ static const USBDescriptor deviceDescriptor = {sizeof(deviceDescriptorData), dev
 
 /* configuration descriptor */
 static const uint8_t configurationDescriptorData[] = {
-    /* configuration descriptor */
+    /* configuration descriptor (9byte)*/
     USB_DESC_CONFIGURATION(32,   /* total length                                             */
-                           1,    /* number of interfaces                                     */
+                           2,    /* number of interfaces                                     */
                            1,    /* value that selects this configuration                    */
                            0,    /* index of string descriptor describing this configuration */
                            0xC0, /* attributes (self-powered)                                */
                            250   /* max power (500 mA)                                       */
                            ),
 
-    /* interface descriptor */
+    /* interface descriptor (9byte)*/ 
     USB_DESC_INTERFACE(0,    /* interface number                                     */
                        0,    /* value used to select alternative setting             */
                        2,    /* number of end-points used by this interface          */
@@ -53,7 +53,7 @@ static const uint8_t configurationDescriptorData[] = {
                        0     /* index of string descriptor describing this interface */
                        ),
 
-    /* end-point descriptor */
+    /* end-point descriptor (7byte)*/
     USB_DESC_ENDPOINT(MASS_STORAGE_OUT_EPADDR, /* address (end point index | OUT direction)      */
                       USB_EP_MODE_TYPE_BULK,   /* attributes (bulk)                              */
                       MS_EPSIZE,               /* max packet size(8, 16, 32, 64)                 */
@@ -67,6 +67,8 @@ static const uint8_t configurationDescriptorData[] = {
                       0x05                    /* polling interval (ignored for bulk end-points) */
                       ),
     // ADDing Normal HID interface
+    /* interface descriptor (9byte)*/ 
+
 };
 static const USBDescriptor configurationDescriptor = {sizeof(configurationDescriptorData), configurationDescriptorData};
 
@@ -77,7 +79,7 @@ static const uint8_t languageDescriptorData[] = {
 static const USBDescriptor languageDescriptor = {sizeof(languageDescriptorData), languageDescriptorData};
 
 /* Vendor descriptor */
-static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(30), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'P', 0, 'l', 0, 'a', 0, 'y', 0, 'K', 0, 'B', 0, 'x', 0, 'K', '0', 'e', '0', 'e', '0', 'B', '0', 'o', '0', 'y', '0', 'z', '0'};
+static const uint8_t       vendorDescriptorData[] = {USB_DESC_BYTE(36), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'P', 0, 'l', 0, 'a', 0, 'y', 0, 'K', 0, 'B', 0, 'x', 0, 'K', 0, 'e', 0, 'e', 0, 'B', 0, 'o', 0, 'y', 0, 'z', 0, 'L', 0, 'A', 0, 'B', 0};
 static const USBDescriptor vendorDescriptor       = {sizeof(vendorDescriptorData), vendorDescriptorData};
 
 /* Product descriptor */
@@ -85,7 +87,7 @@ static const uint8_t       productDescriptorData[] = {USB_DESC_BYTE(22), USB_DES
 static const USBDescriptor productDescriptor       = {sizeof(productDescriptorData), productDescriptorData};
 
 /* Serial number descriptor */
-static const uint8_t       serialNumberDescriptorData[] = {USB_DESC_BYTE(26), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '1', 0};
+static const uint8_t       serialNumberDescriptorData[] = {USB_DESC_BYTE(20), USB_DESC_BYTE(USB_DESCRIPTOR_STRING), 'O', 0, 'L', 0, 'E', 0, 'D', 0, 'v', 0, '.', 0, '0', 0, '.', 0, '1', 0};
 static const USBDescriptor serialNumberDescriptor       = {sizeof(serialNumberDescriptorData), serialNumberDescriptorData};
 
 /* Handles GET_DESCRIPTOR requests from the USB host */
@@ -121,15 +123,13 @@ static void usbEvent(USBDriver* usbp, usbevent_t event) {
     switch (event) {
         case USB_EVENT_CONFIGURED:
             chSysLockFromISR();
-
             msdConfigureHookI(usbp);
-
             chSysUnlockFromISR();
             break;
 
         case USB_EVENT_RESET:
-        case USB_EVENT_ADDRESS:
         case USB_EVENT_SUSPEND:
+        case USB_EVENT_ADDRESS:
         case USB_EVENT_WAKEUP:
         case USB_EVENT_STALLED:
         default:
@@ -141,13 +141,9 @@ static void usbEvent(USBDriver* usbp, usbevent_t event) {
 
 static USBConfig msd_usbConfig = {usbEvent, getDescriptor, msdRequestsHook, NULL};
 
-/* Turns on a LED when there is I/O activity on the USB port */
-static void usbActivity(bool_t active){
-
-};
 /* USB mass storage configuration */
 
-const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "PKBxKBL", "ModelOLED", "0.1"};
+const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, NULL, "PKBxKBL", "ModelOLED", "0.1"};
 
 /* USB mass storage driver */
 USBMassStorageDriver UMSD1;
@@ -169,8 +165,8 @@ void msd_protocol_setup(void) {
     msdStart(&UMSD1, &msdConfig);
     flashInit();
     flash_block_device_ptr = get_flashObject();
-    msdReady(&UMSD1, (BaseBlockDevice*)flash_block_device_ptr);
 
+    msdReady(&UMSD1, (BaseBlockDevice*)flash_block_device_ptr);
     // start the USB
     usbDisconnectBus(UMSD1.config->usbp);
     usbStop(UMSD1.config->usbp);

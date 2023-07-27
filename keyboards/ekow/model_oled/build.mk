@@ -100,10 +100,15 @@ test: $(BUILD_DIR)/$(TARGET).elf
 
 gdb:
 	# Build qmk 
-	qmk --verbose compile -kb ekow/model_oled/beta -km default
+	qmk --verbose compile -kb ekow/model_oled/alpha -km via
 	# openocd flash
-	openocd -f ./keyboards/ekow/model_oled/tests/oled.cfg -c "program_device ()"
-	openocd -f ./keyboards/ekow/model_oled/tests/oled.cfg 
+	openocd -f ./keyboards/ekow/model_oled/tests/oled.cfg  -c  "program_device ()"
+
+gdb-beta:
+	# Build qmk 
+	qmk --verbose compile -kb ekow/model_oled/beta -km via
+	# openocd flash
+	openocd -f ./keyboards/ekow/model_oled/tests/oled-beta.cfg  -c  "program_device ()"
 
 
 

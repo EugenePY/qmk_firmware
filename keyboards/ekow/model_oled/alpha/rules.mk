@@ -1,7 +1,6 @@
 # MCU name
 MCU = STM32F411
 BOARD = GENERIC_STM32_F411XE
-
 MCU_LDSCRIPT = oled
 
 PROJECT_PATH = keyboards/ekow/model_oled
@@ -15,14 +14,11 @@ BOOTLOADER = stm32-dfu
 
 # Build Options
 #   change yes to no to disable
-#
 BOOTMAGIC_ENABLE = yes      # Enable Bootmagic Lite
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
 NKRO_ENABLE = yes           # Enable N-Key Rollover
-BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
-RGBLIGHT_ENABLE = no        # Enable keyboard RGB underglow
-AUDIO_ENABLE = no           # Audio output
+# RAW_ENABLE = yes this will be enable when using via
 
 SOLENOIDE_ENABLE = yes
 OLED_ENABLE = yes

@@ -1,5 +1,7 @@
 // SCSI spcs
 #pragma once
+#include <stdint.h>
+#include <stdbool.h>
 
 /* Command statuses */
 #define MSD_COMMAND_PASSED 0x00
@@ -58,22 +60,6 @@
 #define SCSI_ASENSEQ_INITIALIZING_COMMAND_REQUIRED 0x02
 #define SCSI_ASENSEQ_OPERATION_IN_PROGRESS 0x07
 
-// only support up to 10 byte command
-typedef union {
-    typedef struct {
-        uint8_t  op_code;
-        uint8_t  msb;
-        uint16_t block_address;
-        uint8_t  lenght;
-        uint8_t  control;
-    } __attribute__((packed)) cdb6_t; // 6byte command descriptor block
 
-    typedef struct {
-        uint8_t  op_code;
-        uint8_t  msb;
-        uint32_t block_address;
-        uint8_t  msb1;
-        uint16_t lenght;
-        uint8_t  control;
-    } __attribute__((packed)) cdb10_t; // 10byte command descriptor block
-} cdb_t;
+bool msd_scsi_inquiry_handler(uint8_t* scsi_cmd_data[16]);
+void msd_command_block_handler(uint8_t* scsi_cmd_data[16]);

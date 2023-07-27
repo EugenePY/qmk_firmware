@@ -15,30 +15,23 @@ BOOTLOADER = stm32-dfu
 # Build Options
 #   change yes to no to disable
 #
-
 BOOTMAGIC_ENABLE = yes      # Enable Bootmagic Lite
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
+NKRO_ENABLE = yes           # Enable N-Key Rollover
+RAW_ENABLE = yes
+KEYBOARD_SHARED_EP = yes
+# VIRTSER_ENABLE = yes
+
+#CONSOLE_ENABLE = yes
+#MIDI_ENABLE = yes
 
 SEMIHOST_ENABLE = no
-
 ifeq ($(SEMIHOST_ENABLE), yes)
 	# Enable Semihosting
 	CFLAGS += -specs=rdimon.specs -lc -lrdimon
 	OPT_DEFS += -DSEMIHOST_ENABLE
 endif
-
-DEBUG = no
-ifeq ($(DEBUG), yes)
-	DEBUG_ENABLE = yes
-	CONSOLE_ENABLE = yes
-	COMMAND_ENABLE = yes        # Commands for debug and configuration
-endif
-
-NKRO_ENABLE = yes           # Enable N-Key Rollover
-BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
-RGBLIGHT_ENABLE = no        # Enable keyboard RGB underglow
-AUDIO_ENABLE = no           # Audio output
 
 SOLENOIDE_ENABLE = yes
 OLED_ENABLE = yes
@@ -58,4 +51,3 @@ endif
 CUSTOM_MATRIX = yes
 # project specific files
 SRC += alpha/matrix.c
-

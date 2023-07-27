@@ -39,7 +39,7 @@ flashsector_t flashSectorAt(flashaddr_t address) {
         while (FLASH->SR & FLASH_SR_BSY) { \
         }                                  \
     }
-
+#define is_flashLocked (FLASH->CR & FLASH_CR_LOCK)
 /**
  * @brief Unlock the flash memory for write access.
  * @return CH_SUCCESS  Unlock was successful.
@@ -47,14 +47,14 @@ flashsector_t flashSectorAt(flashaddr_t address) {
  */
 static bool flashUnlock(void) {
     /* Check if unlock is really needed */
-    if (!(FLASH->CR & FLASH_CR_LOCK)) return CH_SUCCESS;
+    if (!is_flashLocked) return CH_SUCCESS;
 
     /* Write magic unlock sequence */
     FLASH->KEYR = 0x45670123;
     FLASH->KEYR = 0xCDEF89AB;
 
     /* Check if unlock was successful */
-    if (FLASH->CR & FLASH_CR_LOCK) return CH_FAILED;
+    if (is_flashLocked) return CH_FAILED;
     return CH_SUCCESS;
 }
 

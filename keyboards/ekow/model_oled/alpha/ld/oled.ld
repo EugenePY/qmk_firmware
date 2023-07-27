@@ -28,8 +28,8 @@ MEMORY
     flash6 (rx) : org = 0x08040000, len = 128k
     flash7 (rx) : org = 0x08060000, len = 128k
     ram0   (wx) : org = 0x20000000, len = 128k
-    ram1   (wx) : org = 0x00000000, len = 0
     ram2   (wx) : org = 0x00000000, len = 0
+    ram1   (wx) : org = 0x00000000, len = 0
     ram3   (wx) : org = 0x00000000, len = 0
     ram4   (wx) : org = 0x00000000, len = 0
     ram5   (wx) : org = 0x00000000, len = 0

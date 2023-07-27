@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 
 #include "ssd1331.h"
 #include "debug.h"
@@ -37,6 +38,7 @@ oled_driver_t oled_driver    = {.oled_cursor = &oled_buffer[0], .oled_scrolling 
  *
  */
 #ifndef OLED_TEST
+
 void spi_init(void) {
     static bool is_initialised = false;
     if (!is_initialised) {
@@ -98,12 +100,19 @@ spi_status_t STATIC _data_write(const uint8_t* data, uint16_t length) {
  *  this setup the render windown and reset the pixel cursor to upper left corner.
  */
 spi_status_t STATIC _setup_render_window(void) {
-    const uint8_t command_buffer[] = {SSD1331_CMD_SETCOLUMN, 0x10, 0x4F, SSD1331_CMD_SETROW, 0x00, 0x2F};
-    return _command_transaction(command_buffer, 6);
+    spi_status_t  res;
+    const uint8_t _command_buffer[] = {SSD1331_CMD_SETCOLUMN, 0x10, 0x4F};
+    res                             = _command_transaction(_command_buffer, 3);
+    if (res != SPI_STATUS_SUCCESS) return res;
+    wait_ms(5);
+    const uint8_t command_buffer[] = {SSD1331_CMD_SETROW, 0x00, 0x2F};
+    res                            = _command_transaction(command_buffer, 3);
+    wait_ms(5);
+    return res;
 }
 
 // oled cursor tracking the current position of the OLED IC.
-OLED_BUFFER_TYPE* oled_cursor(void) {
+uint8_t* oled_cursor(void) {
     return oled_driver.oled_cursor;
 }
 
@@ -111,14 +120,16 @@ void STATIC nkk_oled_sw_reset_on(void) {
     // OLED_SHWN_PIN should pull down.
     // reset the OLED
     writePinLow(OLED_SHWN_PIN);
+    wait_ms(20);
     // pull the OLED_RESET_PIN LOW, this pin is low as default.
     writePinLow(OLED_REST_PIN);
     // wait for minumnm of 3us, and then set to high
-    wait_ms(5);
+    wait_ms(20);
     writePinHigh(OLED_REST_PIN);
-    wait_ms(5);
+    wait_ms(20);
     // turn the OLED VCC power on
     writePinHigh(OLED_SHWN_PIN);
+    wait_ms(200); // wait for the power bump to charge...
 };
 
 bool is_oled_driver_actived(void) {
@@ -129,6 +140,7 @@ bool oled_init(oled_rotation_t rotation) {
     // hardware setup
     if (!oled_driver.oled_initialized) {
         spi_init();
+        wait_ms(10);
         // Setup OLED reset, chargin pump power ping.
         setPinOutput(OLED_SHWN_PIN);
         setPinOutput(OLED_REST_PIN);

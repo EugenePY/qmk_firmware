@@ -1,6 +1,7 @@
 /* default function/MACRO variables declarations */
 #pragma once
 #include <ch.h>
+#include <stdint.h>
 #include <hal.h>
 
 #include "quantum.h"
@@ -26,3 +27,16 @@ void oled_task_stop(void);
 
 // reset to default image from eeprom
 void model_oled_reset_img(void);
+
+typedef struct {
+    uint8_t n_frame;
+    uint32_t time_delay;
+} __attribute__((packed)) image_header_t;
+
+typedef struct {
+    image_header_t header;
+    uint8_t *img_buffer;
+} __attribute__((packed)) image_file_t;
+
+void img_init(void);
+//void img_read(image_meta_t*);

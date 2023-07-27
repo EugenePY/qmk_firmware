@@ -2,6 +2,8 @@
  *
  */
 #include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include "flash_ioblock.h"
 #include "vfat.h"
 
@@ -26,7 +28,6 @@ static const flash_block_device_vmt flash_vmt = {(size_t)0, // object offsets
                                                             // removable media detecthion.
                                                  flash_is_inserted,
                                                  // removable write protection
-
                                                  flash_is_write_protected,
                                                  // connection to the block device.
                                                  flash_connect,
@@ -53,16 +54,20 @@ static bool flash_connect(void *instance) {
 static bool flash_disconnect(void *instance) {
     return true;
 };
-
 bool flash_read(void *instance, uint32_t startblk, uint8_t *buffer, uint32_t n) {
-    uint32_t address = FLASH_ADDR(startblk * SECTOR_SIZE_BYTES);
-    memcpy(buffer, (uint8_t *)address, n * SECTOR_SIZE_BYTES);
-    return true;
+    int res = CH_FAILED;
+
+    for (int i = 0; i < n; i++) {
+        res = vfs_read_fat12(startblk + i, &buffer[i * SECTOR_SIZE_BYTES]);
+    }
+    return res == CH_SUCCESS;
 }
 static bool flash_write(void *instance, uint32_t startblk, const uint8_t *buffer, uint32_t n) {
-    uint32_t address = FLASH_ADDR(startblk * SECTOR_SIZE_BYTES);
-    RFLASH   res     = flashWrite((flashaddr_t)address, (char *)buffer, n * SECTOR_SIZE_BYTES);
-    return res == FLASH_RETURN_SUCCESS;
+    int res = CH_FAILED;
+    for (int i = 0; i < n; i++) {
+        res = vfs_write_fat12(startblk + i, (uint8_t *)&buffer[i * SECTOR_SIZE_BYTES]);
+    }
+    return res == CH_SUCCESS;
 }
 static bool flash_sync(void *instance) {
     return true;
@@ -74,7 +79,9 @@ static bool flash_get_info(void *instance, BlockDeviceInfo *bdip) {
     return true;
 }
 
-void flashInit(void) {}
+void flashInit(void) {
+    vfs_init();
+}
 
 void flashObjectInit(FLASHDriver *driver_p) {
     if (!driver_ptr) {
