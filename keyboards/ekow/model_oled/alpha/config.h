@@ -20,11 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "oled_config.h"
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID 0x4B59  // KY
-#define PRODUCT_ID 0x4d4f // MO
-#define DEVICE_VER 0x000
-#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
-#define PRODUCT "ModelOLED"
+//#define VENDOR_ID 0x4b59  // KY
+//#define PRODUCT_ID 0x4d4f // MO
+//#define DEVICE_VER 0x000
+//#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
+//#define PRODUCT "ModelOLED"
 #define SERIAL_NUMBER "playkeyboad:model-oled"
 
 // key matrix size
@@ -36,15 +36,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     { B8, B9, C15, B6, B5, B7 }
 
 #define MATRIX_COL_PINS \
-    { B2, B10, B13, B12, B15, B14, A9, B4, A1, A2, A3, A4, A15, A8, A6, B3, A0 } 
+    { B2, B10, B13, B12, B15, B14, A9, B4, A1, A2, A3, A4, A15, A8, A6, B3, A0 }
 
 #define USB_MAX_POWER_CONSUMPTION 500
 
 // Wear-leveling Embeded Flash Config
-//#define WEAR_LEVELING_LEGACY_EMULATION_FLASH_BASE (uint32_t)(&__eeprom_enu_address__)
+// #define WEAR_LEVELING_LEGACY_EMULATION_FLASH_BASE (uint32_t)(&__eeprom_enu_address__)
 
-//#define WEAR_LEVELING_LOGICAL_SIZE 2048
-//#define WEAR_LEVELING_BACKING_SIZE 16384
+// #define WEAR_LEVELING_LOGICAL_SIZE 2048
+// #define WEAR_LEVELING_BACKING_SIZE 16384
 
 /*
 #* Keyboard Matrix Assignments

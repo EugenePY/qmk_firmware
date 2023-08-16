@@ -18,7 +18,7 @@ BOOTMAGIC_ENABLE = yes      # Enable Bootmagic Lite
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
 NKRO_ENABLE = yes           # Enable N-Key Rollover
-# RAW_ENABLE = yes this will be enable when using via
+#RAW_ENABLE = yes #this will be enable when using via
 
 SOLENOIDE_ENABLE = yes
 OLED_ENABLE = yes
