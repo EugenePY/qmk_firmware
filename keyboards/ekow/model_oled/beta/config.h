@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "config_common.h"
 #include "oled_config.h"
 
 /* USB Device descriptor parameter */
@@ -61,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define SOLENOID_DEFAULT_DWELL 75
 #endif
 
-/* USB endpoint settings 
+/* USB endpoint settings
  * Shard endpoints between mouse key and normal kbs.
  */
 
