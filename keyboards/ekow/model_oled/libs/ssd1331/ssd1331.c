@@ -268,7 +268,21 @@ bool oled_on(void) {
     }
     return oled_driver.oled_active;
 }
+
 bool oled_off(void) {
+    if (oled_driver.oled_initialized) {
+        if (oled_driver.oled_active) {
+            const uint8_t command[] = {SSD1331_CMD_DISPLAYOFF};
+            spi_status_t  result    = _command_transaction(command, 1);
+            if (result == SPI_STATUS_SUCCESS) {
+                oled_driver.oled_active = false;
+            }
+        }
+    }
+    return oled_driver.oled_active;
+}
+
+bool oled_dim(void) {
     if (oled_driver.oled_initialized) {
         if (oled_driver.oled_active) {
             // sending the command
