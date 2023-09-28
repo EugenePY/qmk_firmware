@@ -64,7 +64,7 @@ bool STATIC ssd1331_spi_start(void) {
     return spi_start(OLED_SS_PIN, false, 0, OLED_SPI_CLK_DIVISOR);
 }
 // hardware command
-spi_status_t STATIC _command_transaction(const uint8_t* command_data, uint16_t lenght) {
+spi_status_t _command_transaction(const uint8_t* command_data, uint16_t lenght) {
     writePinLow(OLED_SSD_1331_DC_PIN);
     spi_status_t result = SPI_STATUS_SUCCESS;
     if (ssd1331_spi_start()) {
@@ -110,14 +110,16 @@ void STATIC nkk_oled_sw_reset_on(void) {
     // OLED_SHWN_PIN should pull down.
     // reset the OLED
     writePinLow(OLED_SHWN_PIN);
+    wait_ms(5);
     // pull the OLED_RESET_PIN LOW, this pin is low as default.
     writePinLow(OLED_REST_PIN);
     // wait for minumnm of 3us, and then set to high
-    wait_ms(100);
+    wait_ms(5);
     writePinHigh(OLED_REST_PIN);
-    wait_ms(50);
+    wait_ms(5);
     // turn the OLED VCC power on
     writePinHigh(OLED_SHWN_PIN);
+    wait_ms(5); // wait for the power bump to charge...
 };
 
 bool is_oled_driver_actived(void) {
@@ -235,6 +237,7 @@ bool oled_init(oled_rotation_t rotation) {
     }
     return oled_driver.oled_initialized;
 };
+
 bool ssd1331_oled_setup_window(void) {
     return _setup_render_window() == SPI_STATUS_SUCCESS;
 }
@@ -255,7 +258,8 @@ bool oled_on(void) {
     }
     return oled_driver.oled_active;
 }
-bool oled_off(void) {
+
+bool oled_dim(void) {
     if (oled_driver.oled_initialized) {
         if (oled_driver.oled_active) {
             // sending the command
@@ -269,6 +273,22 @@ bool oled_off(void) {
     }
     return oled_driver.oled_active;
 }
+
+bool oled_off(void) {
+    if (oled_driver.oled_initialized) {
+        if (oled_driver.oled_active) {
+            // sending the command
+            const uint8_t command[] = {SSD1331_CMD_DISPLAYOFF};
+            spi_status_t  result    = _command_transaction(command, 1);
+
+            if (result == SPI_STATUS_SUCCESS) {
+                oled_driver.oled_active = false;
+            }
+        }
+    }
+    return oled_driver.oled_active;
+}
+
 /* this command it the shutdown percedual suggeset in the datasheet, however
  * in the kb applicaiton user just unplug the usb cable ....
  * */

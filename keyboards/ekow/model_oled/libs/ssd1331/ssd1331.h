@@ -1,5 +1,6 @@
 #pragma once
 #include "oled_driver.h"
+#include "spi_master.h"
 
 // Misc defines
 #ifndef OLED_BLOCK_COUNT
@@ -24,12 +25,12 @@
 #endif
 
 typedef struct {
-    OLED_BUFFER_TYPE* oled_cursor;
-    bool              oled_scrolling;
-    bool              oled_initialized;
-    bool              oled_active;
-    OLED_BLOCK_TYPE   oled_dirty;
-    oled_rotation_t   oled_rotation_width;
+    uint8_t*        oled_cursor;
+    bool            oled_scrolling;
+    bool            oled_initialized;
+    bool            oled_active;
+    OLED_BLOCK_TYPE oled_dirty;
+    oled_rotation_t oled_rotation_width;
 } oled_driver_t;
 
 // D/C pull high as Data, low as Command
@@ -68,13 +69,30 @@ typedef struct {
 #define SSD1331_CMD_PRECHARGEB 0x8B            //!< Set second pre-charge speed for color B
 #define SSD1331_CMD_PRECHARGEC 0x8C            //!< Set second pre-charge speed for color C
 #define SSD1331_CMD_PRECHARGELEVEL 0xBB        //!< Set pre-charge voltage
-#define SSD1331_CMD_VCOMH 0xBE                 //!< Set Vcomh voltage
+#define SSD1331_CMD_VCOMH \
+    0xBE                             //!< Set Vcomh voltage
+                                     //
+#define SSD1331_CMD_COMMANDLOCK 0xFD //!< Command Lock Mode
+#define SSD1331_ARG_COMMANDLOCK_LOCK 0b00010110
+#define SSD1331_ARG_COMMANDLOCK_UNLOCK 0b00010010
 
+// remape setup
+#define ssd1331_madctl_my 0b00010000  // horizon address increatmental
+#define ssd1331_madctl_mx 0b00000010  // vertical address increatemental
+#define ssd1331_madctl_mv 0b00000001  // horizon address increamental
+#define ssd1331_madctl_bgr 0b01100011 // bgr, 65k color
+#define ssd1331_madctl_rgb 0b01100111 // rgb reverse, 65k color
+#define ssd1331_madctl_swap_com \
+    0b001000 // set com left right swapping
+             //
 bool is_oled_driver_actived(void);
 bool is_oled_driver_init(void);
 bool ssd1331_oled_setup_window(void);
-
 void ssd1331_oled_render(const uint8_t* img, uint16_t length);
 void oled_write_rgb_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b);
 void ssd1331_oled_write_raw_byte(const OLED_BUFFER_TYPE* data, uint16_t index);
 bool ssd1331_oled_write_window(uint8_t x, uint8_t y, uint8_t w, uint8_t h);
+
+
+
+

@@ -1,6 +1,7 @@
 # MCU name
 MCU = STM32F411
 BOARD = GENERIC_STM32_F411XE
+<<<<<<< Updated upstream
 
 MCU_LDSCRIPT = oled
 
@@ -38,8 +39,10 @@ ifeq ($(SOLENOIDE_ENABLE), yes)
 	HAPTIC_ENABLE = yes
 	HAPTIC_DRIVER += SOLENOID
 endif
+=======
+>>>>>>> Stashed changes
 
 CUSTOM_MATRIX = yes
-# project specific files
-SRC += matrix.c
-
+ifeq ($(CUSTOM_MATRIX), yes)
+	SRC += matrix.c
+endif

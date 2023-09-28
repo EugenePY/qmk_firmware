@@ -1,0 +1,11 @@
+{
+    "keyboard_name": "ModelOLED",
+    "manufacturer": "PlayKeyboradxKeeBoyzLab",
+    "maintainer": "eugenepy",
+    "url": "http://github.com/EugenePY",
+    "usb": {
+        "vid": "0x4B59",
+        "pid": "0x4D4F",
+        "device_version": "0.0.0"
+    },
+}

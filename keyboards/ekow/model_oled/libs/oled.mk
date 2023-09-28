@@ -1,14 +1,14 @@
 
 MODULE = OLED_SSD1331
 
-$(MODULE)_SRC += $(PROJECT_LIB_PATH)/ssd1331/ssd1331.c 
-$(MODULE)_SRC += $(PLATFORM)/drivers/spi_master.c 
+$(MODULE)_SRC += $(PROJECT_LIB_PATH)/ssd1331/ssd1331.c
+$(MODULE)_SRC += $(PLATFORM)/drivers/spi_master.c
 $(MODULE)_INC += $(PROJECT_LIB_PATH)/ssd1331
 
-OPT_DEFS += 
+OPT_DEFS +=
 VPATH += ${OLED_SSD1331_INC}
 SRC += ${OLED_SSD1331_SRC}
-SRC += $(PROJECT_LIB_PATH)/oled_main.c 
+SRC += $(PROJECT_LIB_PATH)/oled_main.c
 
 include $(PROJECT_LIB_PATH)/msd/msd.mk
 

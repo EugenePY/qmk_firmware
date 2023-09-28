@@ -1,7 +1,5 @@
 #pragma once
 
-#define OLED_ALL_BLOCKS_MASK (((((OLED_BLOCK_TYPE)1 << (OLED_BLOCK_COUNT - 1)) - 1) << 1) | 1)
-
 // D/C pull high as Data, low as Command
 // Timing Delays
 #define SSD1331_DELAYS_HWFILL (3) //!< Fill delay
@@ -39,3 +37,14 @@
 #define SSD1331_CMD_PRECHARGEC 0x8C            //!< Set second pre-charge speed for color C
 #define SSD1331_CMD_PRECHARGELEVEL 0xBB        //!< Set pre-charge voltage
 #define SSD1331_CMD_VCOMH 0xBE                 //!< Set Vcomh voltage
+#define SSD1331_CMD_COMMANDLOCK 0xFD              //!< Command Lock Mode
+#define SSD1331_ARG_COMMANDLOCK_ON 0b00010110
+#define SSD1331_ARG_COMMANDLOCK_ON 0b00010110
+
+// remape setup
+#define ssd1331_madctl_my 0b00010000     // horizon address increatmental
+#define ssd1331_madctl_mx 0b00000010     // vertical address increatemental
+#define ssd1331_madctl_mv 0b00000001     // horizon address increamental
+#define ssd1331_madctl_bgr 0b01100011    // bgr, 65k color
+#define ssd1331_madctl_rgb 0b01100111    // rgb reverse, 65k color
+#define ssd1331_madctl_swap_com 0b001000 // set com left right swapping

@@ -21,11 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "oled_config.h"
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID 0x4B59  // KY
-#define PRODUCT_ID 0x4d4f // MO
-#define DEVICE_VER 0x000
-#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
-#define PRODUCT "ModelOLED"
 #define SERIAL_NUMBER "playkeyboad:model-oled"
 
 // key matrix size
@@ -36,8 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIX_ROW_PINS \
     { C13, C14, C15, B7, A6}
 #define MATRIX_COL_PINS \
+<<<<<<< Updated upstream
     { B0, B10, B12, A10, B2, A8, A2, B14, B15, A15, B3, B5, B6, B9, B8, A0, A1}
 
+=======
+    { B4, B10 }
+>>>>>>> Stashed changes
 
 #define USB_MAX_POWER_CONSUMPTION 500
 
@@ -63,8 +62,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBOUNCE 3
 
 #ifdef SOLENOID_ENABLE
+<<<<<<< Updated upstream
 #    define SOLENOID_PIN B4
+=======
+#    define SOLENOID_PIN A9
+>>>>>>> Stashed changes
 #    define SOLENOID_ACTIVE true
 #    define SOLENOID_DEFAULT_DWELL 75
 #endif
 
+<<<<<<< Updated upstream
+=======
+/* USB endpoint settings
+ * Shard endpoints between mouse key and normal kbs.
+ */
+>>>>>>> Stashed changes

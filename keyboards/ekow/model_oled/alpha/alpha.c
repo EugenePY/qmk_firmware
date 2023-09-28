@@ -13,42 +13,4 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "alpha.h"
-#include "stdbool.h"
-#include "wait.h"
-#include "usb_util.h"
-
-#ifdef OLED_ENABLE
-#    include "oled_main.h"
-#endif
-
-void keyboard_pre_init_user(void) {
-#ifdef OLED_ENABLE
-    oled_task_init();
-#endif
-}
-
-void keyboard_post_init_user(void) {
-#ifdef CONSOLE_ENABLE
-    debug_enable = true;
-#endif
-}
-
-void early_hardware_init_post(void) {
-#ifdef OLED_ENABLE
-    if_requested_model_oled_flash();
-#endif
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-        case KC_IMG:
-#ifdef OLED_ENABLE
-            model_oled_flash_img_jump();
-#endif
-        default:
-            return true; // Process all other keycodes normally
-    }
-    return true;
-}
-
+#include "model_oled.h"

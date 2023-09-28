@@ -1,9 +1,9 @@
 #include <wait.h>
-#include "qp_internal.h"
 #include "qp_comms.h"
 #include "qp_ssd1331.h"
 #include "qp_ssd1331_opcodes.h"
 #include "qp_tft_panel.h"
+
 
 #ifdef QUANTUM_PAINTER_SSD1331_SPI_ENABLE
 #    include "qp_comms_spi.h"
@@ -17,42 +17,69 @@ tft_panel_dc_reset_painter_device_t ssd1331_drivers[SSD1331_NUM_DEVICES] = {0};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initialization
+void static nkk_oled_sw_reset_on(void) {
+    // OLED_SHWN_PIN should pull down.
+    // reset the OLED
+    writePinLow(OLED_SHWN_PIN);
+    wait_ms(20);
+    // pull the OLED_RESET_PIN LOW, this pin is low as default.
+    writePinLow(OLED_REST_PIN);
+    // wait for minumnm of 3us, and then set to high
+    wait_ms(20);
+    writePinHigh(OLED_REST_PIN);
+    wait_ms(20);
+    // turn the OLED VCC power on
+    writePinHigh(OLED_SHWN_PIN);
+    wait_ms(200); // wait for the power bump to charge...
+};
 
-__attribute__((weak)) bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
+
+bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
     tft_panel_dc_reset_painter_device_t *driver = (tft_panel_dc_reset_painter_device_t *)device;
 
     // clang-format off
     const uint8_t ssd1331_init_sequence[] = {
         // Command,                 Delay, N, Data[N]
-        SSD1331_CMD_CONTRASTA,           5,  1, 0xC8, 0x80, 0xC8,
-        SSD1331_COMMANDLOCK,           5,  1, 0x12,
-        SSD1331_COMMANDLOCK,           5,  1, 0xB1,
-        SSD1331_DISPLAYOFF,            5,  0,
-        SSD1331_CLOCKDIV,              5,  1, 0xF1,
-        SSD1331_MUXRATIO,              5,  1, 0x7F,
-        SSD1331_DISPLAYOFFSET,         5,  1, 0x00,
-        SSD1331_SETGPIO,               5,  1, 0x00,
-        SSD1331_FUNCTIONSELECT,        5,  1, 0x01,
-        SSD1331_PRECHARGE,             5,  1, 0x32,
-        SSD1331_VCOMH,                 5,  1, 0x05,
-        SSD1331_NORMALDISPLAY,         5,  0,
-        SSD1331_CONTRASTMASTER,        5,  1, 0x0F,
-        SSD1331_SETVSL,                5,  3, 0xA0, 0xB5, 0x55,
-        SSD1331_PRECHARGE2,            5,  1, 0x01,
-        SSD1331_DISPLAYON,             5,  0,
+        SSD1331_CMD_CONTRASTA,         5,  1, 0x15,
+        SSD1331_CMD_CONTRASTB,         5,  1, 0x1A,
+        SSD1331_CMD_CONTRASTC,         5,  1, 0x17,
+        SSD1331_CMD_MASTERCURRENT,     5,  1, 0x0F,
+        SSD1331_CMD_SETREMAP,          5,  1, 0x7F,
+        SSD1331_CMD_STARTLINE,         5,  1, 0x00,
+        SSD1331_CMD_DISPLAYOFFSET,     5,  1, 0x10,
+        SSD1331_CMD_NORMALDISPLAY,     5,  0,
+        SSD1331_CMD_SETMULTIPLEX,      5,  1, 0x2F,
+        SSD1331_CMD_DIMMODESETTING,    5,  5, 0x00, 0x12, 0x0C, 0x14, 0x12,
+        SSD1331_CMD_SETMASTER,         5,  1, 0x8E,
+        SSD1331_CMD_POWERMODE,         5,  1, 0x0B,
+        SSD1331_CMD_PRECHARGE,         5,  1, 0x44,
+        SSD1331_CMD_CLOCKDIV,          5,  1, 0xA0,
+        SSD1331_CMD_ENABLELINEARGRAYSCALE, 5, 0,
+        SSD1331_CMD_PRECHARGELEVEL,    5,  1, 0x12,
+        SSD1331_CMD_VCOMH,             5, 1, 0x3E,
+        SSD1331_CMD_DISPLAYOFF,        5, 0
+        //SSD1331_DISPLAYON,           5,  0, not turning on the oled when init
     };
     // clang-format on
-    qp_comms_bulk_command_sequence(device, ssd1331_init_sequence, sizeof(ssd1351_init_sequence));
+    // Setup OLED reset, chargin pump power ping.
+    // charging pump
+    setPinOutput(OLED_SHWN_PIN);
+    setPinOutput(OLED_REST_PIN);
+    setPinOutput(OLED_SSD_1331_DC_PIN);
+    // oled reset Initialization sequence sequence
+    nkk_oled_sw_reset_on();
+
+    qp_comms_bulk_command_sequence(device, ssd1331_init_sequence, sizeof(ssd1331_init_sequence));
 
     // Configure the rotation (i.e. the ordering and direction of memory writes in GRAM)
     const uint8_t madctl[] = {
-        [QP_ROTATION_0]   = SSD1331_MADCTL_BGR | SSD1351_MADCTL_MY,
-        [QP_ROTATION_90]  = SSD1331_MADCTL_BGR | SSD1351_MADCTL_MX | SSD1351_MADCTL_MY | SSD1351_MADCTL_MV,
-        [QP_ROTATION_180] = SSD1331_MADCTL_BGR | SSD1351_MADCTL_MX,
-        [QP_ROTATION_270] = SSD1331_MADCTL_BGR | SSD1351_MADCTL_MV,
+        [QP_ROTATION_0]   = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MY,
+        [QP_ROTATION_90]  = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MX | SSD1331_MADCTL_MY | SSD1331_MADCTL_MV,
+        [QP_ROTATION_180] = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MX,
+        [QP_ROTATION_270] = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MV,
     };
-    qp_comms_command_databyte(device, SSD1331_SETREMAP, madctl[rotation]);
-    qp_comms_command_databyte(device, SSD1331_STARTLINE, (rotation == QP_ROTATION_0 || rotation == QP_ROTATION_90) ? driver->base.panel_height : 0);
+    qp_comms_command_databyte(device, SSD1331_CMD_SETREMAP, madctl[rotation]);
+    qp_comms_command_databyte(device, SSD1331_CMD_STARTLINE, (rotation == QP_ROTATION_0 || rotation == QP_ROTATION_90) ? driver->base.panel_height : 0);
 
     return true;
 }
@@ -76,11 +103,11 @@ const struct tft_panel_dc_reset_painter_driver_vtable_t ssd1331_driver_vtable = 
     .swap_window_coords = true,
     .opcodes =
         {
-            .display_on         = SSD1331_DISPLAYON,
-            .display_off        = SSD1331_DISPLAYOFF,
-            .set_column_address = SSD1331_SETCOLUMN,
-            .set_row_address    = SSD1331_SETROW,
-            .enable_writes      = SSD1331_WRITERAM,
+            .display_on         = SSD1331_CMD_DISPLAYON,
+            .display_off        = SSD1331_CMD_DISPLAYOFF,
+            .set_column_address = SSD1331_CMD_SETCOLUMN,
+            .set_row_address    = SSD1331_CMD_SETROW,
+            .enable_writes      = SSD1331_CMD_WRITERAM,
         },
 };
 
@@ -120,4 +147,3 @@ painter_device_t qp_ssd1331_make_spi_device(uint16_t panel_width, uint16_t panel
 #endif // QUANTUM_PAINTER_SSD1331_SPI_ENABLE
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-

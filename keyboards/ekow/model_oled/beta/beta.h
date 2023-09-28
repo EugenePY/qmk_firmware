@@ -1,7 +1,5 @@
 /* Copyright 2022 eugenepy
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
  *
@@ -36,11 +34,6 @@ K40,      K01,           K50,           K51,      K41,                 K52, K54,
         {K44, K45, K46, K47, K48, K49, K4A, K4B, K4C, K4D, K4E, K4F, K50, K51, K52, K53, K54 }, \
 }
 
-enum OLED_80_KEYCODES { 
-    KC_SOLENOIDE_TOGGLE = SAFE_RANGE,
-    KC_ENTER_FLASH_IMG
-};
-
-// alias
 #define KC_SOL KC_TOGGLE_SOLENOIDE
 #define KC_IMG KC_ENTER_FLASH_IMG
+//

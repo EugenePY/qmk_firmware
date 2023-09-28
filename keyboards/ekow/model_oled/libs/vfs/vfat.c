@@ -12,6 +12,12 @@
 #define FLASH_PTR(offset) ((__IO uint8_t*)FLASH_ADDR(offset))
 #define FLASH_BYTE(loc, offset) (*(FLASH_PTR(((uint32_t)loc) + ((uint32_t)offset))))
 
+<<<<<<< Updated upstream
+=======
+#define FLASHFileStartCluster 2
+
+
+>>>>>>> Stashed changes
 static const FATBootBlock_t BootBlock = {
     .Bootstrap             = {0xEB, 0x3C, 0x90},
     .Description           = "mkdosfs",

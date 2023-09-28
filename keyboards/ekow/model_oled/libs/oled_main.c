@@ -1,4 +1,10 @@
 #include <stdbool.h>
+<<<<<<< Updated upstream
+=======
+#include <stdint.h>
+#include <string.h>
+
+>>>>>>> Stashed changes
 #include "quantum.h"
 
 #include "oled_main.h"
@@ -8,7 +14,9 @@
 #include "bootloader.h"
 #include "ssd1331.h"
 #include "img/icon.h"
-#include "stm32_dma.h"
+
+#include "graphic.h"
+#include "display.h"
 
 // file system
 #include "ff.h"
@@ -17,6 +25,7 @@
 
 // static bool stop_render = true;
 //
+<<<<<<< Updated upstream
 #define RENDER_BUFFER_SIZE IMG_COL * 1 * 2 // image_width, image_height, bytes by rgb565
 
 static thread_t *thread;
@@ -56,8 +65,10 @@ static THD_FUNCTION(OLEDListenerThread, arg) {
     }
 }
 
+=======
+// #define RENDER_BUFFER_SIZE (IMG_COL * 1 * 2) * 4 // image_width, image_height, bytes by rgb565
+>>>>>>> Stashed changes
 // reset to default image from eeprom
-void model_oled_reset_image(void) {}
 
 extern uint32_t __ram0_end__; // bootloader
                               //
@@ -72,14 +83,13 @@ void model_oled_flash_img_jump(void) {
     NVIC_SystemReset();
 }
 
-void if_requested_model_oled_flash(void) {
+bool if_requested_model_oled_flash(void) {
     unsigned long *check = MAGIC_ADDR;
     if (*check == OLED_FLASH_MAGIC) {
         *check = 0;
-        msd_protocol_setup();
-        while (1) // not goin to the main function
-            ;
+        return true;
     }
+    return false;
 }
 
 void create_default_file(void) {
@@ -117,6 +127,7 @@ void oled_task_init(void) {
         res_test = buffer_read[i] == 0x13;
         if (!res_test) chSysHalt("wrong");
     }
+<<<<<<< Updated upstream
     chSysHalt("halt for testing");
 
     FRESULT res = f_mount(&fs, "", 1);
@@ -128,8 +139,53 @@ void oled_task_init(void) {
                 break;
             default:
                 chSysHalt("oled_task_init: f mounting failed");
+=======
+}
+
+/*
+static int giframe_unsend_byte = 0; // byte left of current frame.
+static int giframe             = 0; // index of the frame
+
+PIXEL_TYPE color[WIDTH * 10]; //= {(PIXEL_TYPE)((uint16_t)0xAAFFU)}; //
+// uint8_t color[WIDTH * 10 * 2] = {0xAA}; //
+//
+=======
+static int giframe_unsend_byte = 0; // byte left of current frame.
+static int giframe             = 0; // index of the frame
+// uint8_t    color[2]            = {0xff, 0xff}; //
+static THD_WORKING_AREA(waOLEDThread, 256);
+static THD_FUNCTION(OLEDThread, arg) {
+    for (int i = 0; i < WIDTH * 10; i++) {
+        color[i] = (PIXEL_TYPE)((uint16_t)0xFFAAU);
+    }
+    while (true) {
+        if ((giframe_unsend_byte > 0)) {
+            int n = WIDTH * 10 * sizeof(PIXEL_TYPE); // MIN(RENDER_BUFFER_SIZE, giframe_unsend_byte);
+            // ssd1331_oled_render(image_file_pt->img_buffer + (giframe)*OLED_BUFFER_SIZE - giframe_unsend_byte, n);
+            ssd1331_oled_render((uint8_t *)color, n);
+            // int n = 2;
+            int n = MIN(RENDER_BUFFER_SIZE, giframe_unsend_byte);
+            ssd1331_oled_render(image_file_pt->img_buffer + (giframe)*OLED_BUFFER_SIZE - giframe_unsend_byte, n);
+            // ssd1331_oled_render(color, n);
+            giframe_unsend_byte -= n;
+        } else {
+            giframe_unsend_byte = OLED_BUFFER_SIZE;
+
+            if ((giframe + 1) > image_file_pt->header.n_frame) {
+                giframe = 1;
+            } else {
+                giframe += 1;
+            }
+
+            if (image_file_pt->header.n_frame > 1) {
+                chThdSleepMilliseconds((const int)image_file_pt->header.time_delay);
+            } else {
+                chThdSleepMilliseconds(10); // image render with slower rerender.
+            }
+>>>>>>> Stashed changes
         }
     }
+<<<<<<< Updated upstream
     res = f_stat(target_file_name, &fno);
     if (res == FR_NO_FILE) create_default_file();
 
@@ -154,3 +210,35 @@ void oled_task_stop(void) {
 bool oled_task_user(void) {
     return true;
 }
+=======
+}
+*/
+
+/* Load data, if image is empty we put default image to the
+ */
+// thread_t *thread = NULL;
+
+// void oled_task_init(void) {
+// img_init();
+// if (is_oled_driver_init()) {
+// oled_init(0);
+// oled_on();
+// ssd1331_oled_setup_window();
+// thread = chThdCreateStatic(waOLEDThread, sizeof(waOLEDThread), NORMALPRIO, OLEDThread, NULL);
+//}
+//  turn on the oled
+//}
+
+// void oled_task_stop(void) {
+// chThdTerminate(thread);
+// chThdWait(thread);
+// thread = NULL;
+//}
+
+// bool oled_task_user(void) {
+//  see nkk sw, page 13.
+//  oled_frame_loop();
+// chThdYield();
+//   return true;
+//}
+>>>>>>> Stashed changes

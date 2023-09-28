@@ -11,7 +11,7 @@
 // reset and jump to the entry function
 void model_oled_flash_img_jump(void);
 
-void if_requested_model_oled_flash(void);
+bool if_requested_model_oled_flash(void);
 
 
 // OLED Driver Tasks
@@ -26,3 +26,18 @@ void oled_task_stop(void);
 
 // reset to default image from eeprom
 void model_oled_reset_img(void);
+<<<<<<< Updated upstream
+=======
+
+typedef struct {
+    uint8_t n_frame;
+    uint32_t time_delay;
+} __attribute__((packed)) image_header_t;
+
+typedef struct {
+    image_header_t header;
+    uint8_t *img_buffer;
+} __attribute__((packed)) image_file_t;
+
+void img_init(void);
+>>>>>>> Stashed changes

@@ -1,6 +1,7 @@
 # MCU name
 MCU = STM32F411
 BOARD = BLACKPILL_STM32_F411
+<<<<<<< Updated upstream
 MCU_LDSCRIPT = oled
 
 PROJECT_PATH = keyboards/ekow/model_oled
@@ -59,3 +60,5 @@ CUSTOM_MATRIX = yes
 # project specific files
 SRC += alpha/matrix.c
 
+=======
+>>>>>>> Stashed changes
