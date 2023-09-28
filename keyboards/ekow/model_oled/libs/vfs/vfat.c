@@ -19,8 +19,6 @@
 
 #define FLASHFileStartCluster 2
 
-extern user_config_t user_config;
-
 static const FATBootBlock_t BootBlock = {
     .Bootstrap             = {0xEB, 0x3C, 0x90},
     .Description           = "mkdosfs",
@@ -39,7 +37,7 @@ static const FATBootBlock_t BootBlock = {
     .PhysicalDriveNum      = 0,
     .ExtendedBootRecordSig = 0x29,
     .VolumeSerialNumber    = 0x00000001,
-    .VolumeLabel           = "OLED IMG  ",
+    .VolumeLabel           = "MODEL-OLED",
     .FilesystemIdentifier  = "FAT12   ",
 };
 
@@ -78,9 +76,9 @@ static FATDirectoryEntry_t
                                                    .Unicode3  = 'E',
                                                    .Unicode4  = 'D',
                                                    .Unicode5  = '.',
-                                                   .Unicode6  = 'I',
-                                                   .Unicode7  = 'M',
-                                                   .Unicode8  = 'G',
+                                                   .Unicode6  = 'Q',
+                                                   .Unicode7  = 'G',
+                                                   .Unicode8  = 'F',
                                                    .Unicode9  = 0,
                                                    .Unicode10 = 0,
                                                    .Unicode11 = 0,
@@ -92,7 +90,7 @@ static FATDirectoryEntry_t
             [DISK_FILE_ENTRY_FLASH_MSDOS] = {.MSDOS_File =
                                                  {
                                                      .Filename        = "OLED    ",
-                                                     .Extension       = "IMG",
+                                                     .Extension       = "QGF",
                                                      .Attributes      = 0,
                                                      .Reserved        = {0},
                                                      .CreationTime    = FAT_TIME(1, 1, 0),
@@ -167,7 +165,10 @@ static int ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuf
     /* Range check the write request - abort if requested block is not within the
      *
      * virtual firmware file sector range */
-    if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) return res;
+    if (!((BlockNumber >= FileStartBlock) && (BlockNumber <= FileEndBlock))) {
+        res = CH_SUCCESS;
+        return res;
+    }
     if (Read) {
         for (uint32_t i = 0; i < SECTOR_SIZE_BYTES; i++) {
             BlockBuffer[i] = FLASH_BYTE(FlashAddress, i);
@@ -182,13 +183,7 @@ static int ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuf
         } else if ((FlashAddress % flashSectorSize(7)) == 0) {
             res = flashSectorErase(7);
         }
-
-        // need to check the zero value.
         res = flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);
-        // update the user_config_t as dirty (n frame need to be update)
-        // user_config.raw      = eeconfig_read_user();
-        // user_config.is_dirty = true;
-        // eeconfig_update_user(user_config.raw);
     } /* Write out the mapped block of data to the device's FLASH */
     return res;
 }
@@ -264,10 +259,3 @@ int vfs_write_fat12(const uint16_t block_idx, const uint8_t* input_block_buffer)
     }
     return res;
 }
-/*
-static void img_empty_check(void) {
-    uint8_t  input_block_buffer[SECTOR_SIZE_BYTES];
-    ReadWriteFLASHFileBlock(block_idx, input_block_buffer, true);
-}
-*/
-// Read the image from flash

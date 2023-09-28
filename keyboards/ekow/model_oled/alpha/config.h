@@ -18,12 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include "oled_config.h"
 
-/* USB Device descriptor parameter */
-//#define VENDOR_ID 0x4b59  // KY
-//#define PRODUCT_ID 0x4d4f // MO
-//#define DEVICE_VER 0x000
-//#define MANUFACTURER "PlayKeyboradxKeeBoyzLab"
-//#define PRODUCT "ModelOLED"
 #define SERIAL_NUMBER "playkeyboad:model-oled"
 
 // key matrix size
@@ -32,18 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // ModelOLED default matrix config
 #define MATRIX_ROW_PINS \
-    { B8, B9, C15, B6, B5, B7 }
+    { C13, C14, C15, B7, A6 }
 
 #define MATRIX_COL_PINS \
-    { B2, B10, B13, B12, B15, B14, A9, B4, A1, A2, A3, A4, A15, A8, A6, B3, A0 }
+    { B2, B10, B13, B12, B15, B14, A10, B4, A1, A2, A3, A4, A15, A8, A6, B3, A0 }
 
 #define USB_MAX_POWER_CONSUMPTION 500
 
-// Wear-leveling Embeded Flash Config
-// #define WEAR_LEVELING_LEGACY_EMULATION_FLASH_BASE (uint32_t)(&__eeprom_enu_address__)
-
-// #define WEAR_LEVELING_LOGICAL_SIZE 2048
 // #define WEAR_LEVELING_BACKING_SIZE 16384
+
+#define USB_MAX_POWER_CONSUMPTION 500
 
 /*
 #* Keyboard Matrix Assignments
@@ -56,12 +48,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #*
 #*/
 /* COL2ROW, ROW2COL */
-
 #define DIODE_DIRECTION COL2ROW
 #define DEBOUNCE 3
 
 #ifdef SOLENOID_ENABLE
-#    define SOLENOID_PIN A10
+#    define SOLENOID_PIN A9
 #    define SOLENOID_ACTIVE true
 #    define SOLENOID_DEFAULT_DWELL 75
 #endif

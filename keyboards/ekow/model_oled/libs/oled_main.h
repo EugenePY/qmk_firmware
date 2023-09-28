@@ -12,7 +12,7 @@
 // reset and jump to the entry function
 void model_oled_flash_img_jump(void);
 
-void if_requested_model_oled_flash(void);
+bool if_requested_model_oled_flash(void);
 
 
 // OLED Driver Tasks
@@ -27,6 +27,11 @@ void oled_task_stop(void);
 
 // reset to default image from eeprom
 void model_oled_reset_img(void);
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> model-m-painter
 
 typedef struct {
     uint8_t n_frame;
@@ -39,4 +44,8 @@ typedef struct {
 } __attribute__((packed)) image_file_t;
 
 void img_init(void);
+<<<<<<< HEAD
 //void img_read(image_meta_t*);
+=======
+>>>>>>> Stashed changes
+>>>>>>> model-m-painter

@@ -1,4 +1,4 @@
-# Quantum Painter Configurables
+# ssd1331 painter support
 
 OPT_DEFS += -DQUANTUM_PAINTER_ENABLE
 COMMON_VPATH += $(QUANTUM_DIR)/painter \

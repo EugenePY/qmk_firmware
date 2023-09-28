@@ -16,21 +16,6 @@ tft_panel_dc_reset_painter_device_t ssd1331_drivers[SSD1331_NUM_DEVICES] = {0};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initialization
-void static nkk_oled_sw_reset_on(void) {
-    // OLED_SHWN_PIN should pull down.
-    // reset the OLED
-    writePinLow(OLED_SHWN_PIN);
-    wait_ms(1);
-    // pull the OLED_RESET_PIN LOW, this pin is low as default.
-    writePinLow(OLED_REST_PIN);
-    // wait for minumnm of 3us, and then set to high
-    wait_ms(1);
-    writePinHigh(OLED_REST_PIN);
-    wait_ms(1);
-    // turn the OLED VCC power on
-    writePinHigh(OLED_SHWN_PIN);
-    wait_ms(1); // wait for the power bump to charge...
-};
 
 bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
     tft_panel_dc_reset_painter_device_t *driver = (tft_panel_dc_reset_painter_device_t *)device;
@@ -42,7 +27,7 @@ bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
         SSD1331_CMD_CONTRASTB,         5,  1, 0x1A,
         SSD1331_CMD_CONTRASTC,         5,  1, 0x17,
         SSD1331_CMD_MASTERCURRENT,     5,  1, 0x0F,
-        SSD1331_CMD_SETREMAP,          5,  1, 0x7F,
+        SSD1331_CMD_SETREMAP,          5,  1, 0x70, //
         SSD1331_CMD_STARTLINE,         5,  1, 0x00,
         SSD1331_CMD_DISPLAYOFFSET,     5,  1, 0x10,
         SSD1331_CMD_NORMALDISPLAY,     5,  0,
@@ -58,15 +43,6 @@ bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
         SSD1331_CMD_DISPLAYOFF,        5, 0
         //SSD1331_DISPLAYON,           5,  0, not turning on the oled when init
     };
-    // clang-format on
-    // Setup OLED reset, chargin pump power ping.
-    // charging pump
-    setPinOutput(OLED_SHWN_PIN);
-    setPinOutput(OLED_REST_PIN);
-    setPinOutput(OLED_SSD_1331_DC_PIN);
-    // oled reset Initialization sequence sequence
-    nkk_oled_sw_reset_on();
-
     qp_comms_bulk_command_sequence(device, ssd1331_init_sequence, sizeof(ssd1331_init_sequence));
 
     // Configure the rotation (i.e. the ordering and direction of memory writes in GRAM)
@@ -141,6 +117,7 @@ const struct tft_panel_dc_reset_painter_driver_vtable_t ssd1331_driver_vtable = 
             .viewport        = qp_ssd1331_panel_viewport,
             .palette_convert = qp_tft_panel_palette_convert_rgb565_swapped,
             .append_pixels   = qp_tft_panel_append_pixels_rgb565,
+            .append_pixdata  = qp_tft_panel_append_pixdata,
         },
     .num_window_bytes   = 1,
     .swap_window_coords = true,

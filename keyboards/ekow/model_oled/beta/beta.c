@@ -1,4 +1,4 @@
-/* Copyright 2022 eugenepy
+/* Copyright 2aa022 eugenepy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,7 +8,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public Lcense for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -16,38 +16,23 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "beta.h"
-#include "wait.h"
-#include "usb_util.h"
+#include "graphic.h"
+#include "model_oled.h"
 
-
-#ifdef OLED_ENABLE
-#    include "oled_main.h"
-#endif
-
-void keyboard_pre_init_user(void) {
-}
-
-void keyboard_post_init_user(void) {
-#ifdef OLED_ENABLE
-    oled_task_init();
-#endif
-
-}
-
-void early_hardware_init_post(void) {
-#ifdef OLED_ENABLE
-    if_requested_model_oled_flash();
-#endif
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+bool process_record_keymap(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
-        case KC_IMG:
-#ifdef OLED_ENABLE
-            model_oled_flash_img_jump();
-#endif
+        case KC_G:
+            if (record->event.pressed) {
+                graphic_forward_kb();
+                return false;
+            }
+        case KC_A:
+            if (record->event.pressed) {
+                graphic_backward_kb();
+                return false;
+            }
         default:
-            return true; // Process all other keycodes normally
+            break;
     }
     return true;
 }

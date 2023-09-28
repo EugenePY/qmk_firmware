@@ -12,6 +12,7 @@
 #include "flash_ioblock.h"
 
 /* endpoint index */
+#define MSD_DEVICE_VER 0x0000
 
 #define USB_MS_DATA_EP 1
 #define MASS_STORAGE_IN_EPADDR ((USB_MS_DATA_EP) | (0x80))
@@ -156,13 +157,13 @@ extern void platform_setup(void);
 
 void msd_protocol_setup(void) {
     /* Wait until USB is active */
-    platform_setup();
     usbObjectInit(UMSD1.config->usbp);
     /* initialize the USB mass storage driver */
     msdInit(&UMSD1);
 
     /* start the USB mass storage service */
     msdStart(&UMSD1, &msdConfig);
+
     flashInit();
     flash_block_device_ptr = get_flashObject();
 

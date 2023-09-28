@@ -20,6 +20,7 @@
 #include "stdint.h"
 
 #include "quantum.h"
+#include "qp_ssd1331.h"
 
 #if defined(KEYBOARD_ekow_model_oled_alpha)
 #    include "alpha.h"
@@ -30,9 +31,32 @@
 typedef union {
     uint32_t raw;
     struct {
-        bool   img_is_empty : 1;
-        bool   is_dirty : 1; // if 1 the mcu will check the number of frame of the image
-        size_t n_frame : 1;
+        bool    timeout_enable : 1;
+        uint8_t n_image : 2;
     };
-} user_config_t;
+} oled_config_t;
 
+enum OLED_80_KEYCODES { KC_ENTER_FLASH_IMG = QK_KB, KC_OLED_TOGGLE };
+
+#define KC_IMG KC_ENTER_FLASH_IMG
+
+// some functions declaration
+extern void platform_setup(void);
+extern void protocol_setup(void);
+extern void protocol_pre_init(void);
+extern void protocol_post_init(void);
+extern void protocol_pre_task(void);
+extern void protocol_post_task(void);
+extern void protocol_init(void);
+extern void protocol_task(void);
+
+// idle function
+uint16_t get_timeout_threshold(void);
+void     timeout_reset_timer(void);
+
+// eeprom config
+void oled_read_config(void);
+
+void graphic_forward_kb(void);
+void graphic_backward_kb(void);
+void render_graphic(painter_image_handle_t graphic);
