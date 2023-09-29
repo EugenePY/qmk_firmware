@@ -127,9 +127,8 @@ static void oled_setup(void) {
     oled_switch = qp_ssd1331_make_spi_device(OLED_WIDTH, OLED_HEIGHT, OLED_SS_PIN, OLED_SSD_1331_DC_PIN, OLED_REST_PIN, OLED_SPI_CLK_DIVISOR, 0);
     qp_init(oled_switch, QP_ROTATION_0);
     //  turn on the OLED
-    // oled_on();
+    oled_on();
     // uint8_t args[] = {};
-    qp_power(oled_switch, true);
     qp_rect(oled_switch, 0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, HSV_BLACK, true);
 
     oled_read_config();
@@ -277,12 +276,12 @@ void housekeeping_task_kb(void) {
 // }
 //}
 
-#define MATRIX_IO_DELAY 20
-void matrix_io_delay(void) {
-    wait_us(MATRIX_IO_DELAY);
-    chThdYield();
-}
-thread_t *thread = NULL;
+// #define MATRIX_IO_DELAY 20
+// void matrix_io_delay(void) {
+//    wait_us(MATRIX_IO_DELAY);
+//   chThdYield();
+//}
+// thread_t *thread = NULL;
 
 int main(void) {
     platform_setup();
@@ -299,8 +298,8 @@ int main(void) {
     while (true) {
         protocol_task();
         // Run Quantum Painter task
-        // void qp_internal_task(void);
-        // qp_internal_task();
+        void qp_internal_task(void);
+        qp_internal_task();
 #ifdef DEFERRED_EXEC_ENABLE
         // Run deferred executions
         void deferred_exec_task(void);

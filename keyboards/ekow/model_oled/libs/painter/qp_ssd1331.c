@@ -46,15 +46,16 @@ bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
     qp_comms_bulk_command_sequence(device, ssd1331_init_sequence, sizeof(ssd1331_init_sequence));
 
     // Configure the rotation (i.e. the ordering and direction of memory writes in GRAM)
-    const uint8_t madctl[] = {
-        [QP_ROTATION_0]   = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MY,
-        [QP_ROTATION_90]  = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MX | SSD1331_MADCTL_MY | SSD1331_MADCTL_MV,
+    /*
+     const uint8_t madctl[] = {
+        [QP_ROTATION_0]   = SSD1331_MADCTL_RGB | SSD1331_MADCTL_MY,
+        [QP_ROTATION_90]  = SSD1331_MADCTL_RGB | SSD1331_MADCTL_MX | SSD1331_MADCTL_MY | SSD1331_MADCTL_MV,
         [QP_ROTATION_180] = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MX,
         [QP_ROTATION_270] = SSD1331_MADCTL_BGR | SSD1331_MADCTL_MV,
     };
-    qp_comms_command_databyte(device, SSD1331_CMD_SETREMAP, madctl[rotation]);
-    qp_comms_command_databyte(device, SSD1331_CMD_STARTLINE, (rotation == QP_ROTATION_0 || rotation == QP_ROTATION_90) ? driver->base.panel_height : 0);
-
+    */
+    //qp_comms_command_databyte(device, SSD1331_CMD_SETREMAP, madctl[rotation]);
+    qp_comms_command_databyte(device, SSD1331_CMD_STARTLINE, (rotation == QP_ROTATION_0 || rotation == QP_ROTATION_90) ? 0: driver->base.panel_height);
     return true;
 }
 
@@ -120,7 +121,7 @@ const struct tft_panel_dc_reset_painter_driver_vtable_t ssd1331_driver_vtable = 
             .append_pixdata  = qp_tft_panel_append_pixdata,
         },
     .num_window_bytes   = 1,
-    .swap_window_coords = true,
+    .swap_window_coords = false,
     .opcodes =
         {
             .display_on         = SSD1331_CMD_DISPLAYON,
@@ -146,7 +147,7 @@ painter_device_t qp_ssd1331_make_spi_device(uint16_t panel_width, uint16_t panel
             driver->base.panel_width           = panel_width;
             driver->base.panel_height          = panel_height;
             driver->base.rotation              = QP_ROTATION_0;
-            driver->base.offset_x              = 0;
+            driver->base.offset_x              = 0x10; // dataset x start from 0x10(16D)
             driver->base.offset_y              = 0;
             driver->base.native_bits_per_pixel = 16; // RGB565
 

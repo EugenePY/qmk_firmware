@@ -47,8 +47,7 @@ ifeq ($(strip $(QUANTUM_PAINTER_NEEDS_COMMS_SPI)), yes)
     QUANTUM_LIB_SRC += spi_master.c
     VPATH += $(DRIVER_PATH)/painter/comms
     SRC += \
-        $(QUANTUM_DIR)/painter/qp_comms.c \
-        $(DRIVER_PATH)/painter/comms/qp_comms_spi.c
+        $(PROJECT_LIB_PATH)/painter/qp_ssd1331_spi.c
 
     ifeq ($(strip $(QUANTUM_PAINTER_NEEDS_COMMS_SPI_DC_RESET)), yes)
         OPT_DEFS += -DQUANTUM_PAINTER_SPI_DC_RESET_ENABLE

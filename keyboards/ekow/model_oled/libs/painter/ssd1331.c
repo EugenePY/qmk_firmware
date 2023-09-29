@@ -28,7 +28,7 @@ static void nkk_oled_sw_reset_on(void) {
     wait_ms(5);
     // turn the OLED VCC power on
     writePinHigh(OLED_SHWN_PIN);
-    wait_ms(5); // wait for the power bump to charge...
+    wait_ms(100); // wait for the power bump to charge...
 };
 
 static void nkk_oled_sw_setup(void) {
