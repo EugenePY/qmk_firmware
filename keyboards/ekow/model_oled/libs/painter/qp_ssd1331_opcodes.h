@@ -42,9 +42,9 @@
 #define SSD1331_ARG_COMMANDLOCK_ON 0b00010110
 
 // remape setup
-#define ssd1331_madctl_my 0b00010000     // horizon address increatmental
-#define ssd1331_madctl_mx 0b00000010     // vertical address increatemental
-#define ssd1331_madctl_mv 0b00000001     // horizon address increamental
-#define ssd1331_madctl_bgr 0b01100011    // bgr, 65k color
-#define ssd1331_madctl_rgb 0b01100111    // rgb reverse, 65k color
-#define ssd1331_madctl_swap_com 0b001000 // set com left right swapping
+#define SSD1331_MADCTL_MY 0b00010000     // horizon address increatmental
+#define SSD1331_MADCTL_MX 0b00000010     // vertical address increatemental
+#define SSD1331_MADCTL_MV 0b00000001     // horizon address increamental
+#define SSD1331_MADCTL_BGR 0b01100011    // bgr, 65k color
+#define SSD1331_MADCTL_RGB 0b01100111    // rgb reverse, 65k color
+#define SSD1331_MADCTL_SWAP_COM 0b001000 // set com left right swapping

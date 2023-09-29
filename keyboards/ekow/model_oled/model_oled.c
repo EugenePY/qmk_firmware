@@ -19,8 +19,12 @@
 #include "model_oled.h"
 #include "qp.h"
 #include "color.h"
-#include "ssd1331.h"
 #include "qp_comms.h"
+#include "matrix.h"
+
+#include "oled_config.h"
+#include "ssd1331.h"
+#include "wait.h"
 
 #include "graphic.h"
 #include "img/gb.qff.h"
@@ -30,7 +34,7 @@
 // for flashing the image
 #include "oled_main.h"
 
-enum via_oled_config_value { id_oled_timeout = 1, id_oled_sleep = 2 };
+enum via_oled_config_value { id_oled_timeout = 1 };
 
 // eeprom config
 static oled_config_t oled_config;
@@ -119,17 +123,15 @@ static painter_image_handle_t graphic      = NULL;
 static graphic_node_t        *current_node = NULL;
 
 static void oled_setup(void) {
-    oled_init();
-
+    oled_init(&oled_switch);
     oled_switch = qp_ssd1331_make_spi_device(OLED_WIDTH, OLED_HEIGHT, OLED_SS_PIN, OLED_SSD_1331_DC_PIN, OLED_REST_PIN, OLED_SPI_CLK_DIVISOR, 0);
     qp_init(oled_switch, QP_ROTATION_0);
-
-    oled_on();
     //  turn on the OLED
-    qp_power(oled_switch, true); // this only send command to the oled.
+    // oled_on();
     // uint8_t args[] = {};
-    // qp_comms_comms_commnad_data_buf(oled_switch, SSD1331_CMD_CLEAR, &args);
+    qp_power(oled_switch, true);
     qp_rect(oled_switch, 0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, HSV_BLACK, true);
+
     oled_read_config();
 }
 
@@ -266,23 +268,17 @@ void timeout_tick_timer(void) {
 void housekeeping_task_kb(void) {
     timeout_tick_timer();
 };
-// create another thread for qp_interal_task()
-//
-//
-//
 
-void qp_internal_task(void);
+// static THD_WORKING_AREA(waPainterThread, 256);
+// static THD_FUNCTION(PainterThread, arg) {
+//    void arg;
+//   while (true) {
+//      chThdYield();
+// }
+//}
 
-static THD_WORKING_AREA(waPainterThread, 256);
-static THD_FUNCTION(PainterThread, arg) {
-    void arg;
-    while (true) {
-        qp_internal_task();
-        chThdYield();
-    }
-}
-
-__attribute__((weak)) void matrix_io_delay(void) {
+#define MATRIX_IO_DELAY 20
+void matrix_io_delay(void) {
     wait_us(MATRIX_IO_DELAY);
     chThdYield();
 }
@@ -299,11 +295,12 @@ int main(void) {
     keyboard_setup();
     protocol_init();
     /* Main loop */
-    thread = chThdCreateStatic(waPainterThread, sizeof(waPainterThread), NORMALPRIO, PainterThread, NULL);
-
+    // thread = chThdCreateStatic(waPainterThread, sizeof(waPainterThread), NORMALPRIO, PainterThread, NULL);
     while (true) {
         protocol_task();
         // Run Quantum Painter task
+        // void qp_internal_task(void);
+        // qp_internal_task();
 #ifdef DEFERRED_EXEC_ENABLE
         // Run deferred executions
         void deferred_exec_task(void);

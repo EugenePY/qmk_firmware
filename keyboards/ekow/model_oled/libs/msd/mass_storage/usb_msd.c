@@ -11,9 +11,6 @@ static USBMassStorageDriver *driver_head;
 /**
  * @brief The list of Serial USB driver
  */
-/* Std setup request
- */
-#    define CLEAR_FEATURE 0x01
 
 /* Request types */
 #    define MSD_REQ_RESET 0xFF
@@ -127,7 +124,7 @@ static void msd_ep_notification(USBDriver *usbp, usbep_t ep) {
 }
 
 static const USBEndpointConfig ms_ep_config = {
-    USB_EP_MODE_TYPE_BULK, /* Bulk EP */
+    USB_EP_MODE_TYPE_BULK, /* Interrupt EP */
     NULL,                  /* SETUP packet notification callback */
     &msd_ep_notification,  /* IN notification callback */
     &msd_ep_notification,  /* OUT notification callback */
@@ -228,7 +225,6 @@ bool_t msdRequestsHook(USBDriver *usbp) {
                 usbSetupTransfer(usbp, len_buf, sizeof(len_buf), NULL);
                 return TRUE;
             default:
-                /* other standard request will be pass to default implementation*/
                 return FALSE;
                 break;
         }

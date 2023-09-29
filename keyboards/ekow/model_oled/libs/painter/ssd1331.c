@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdint.h>
-
+#include <stdbool.h>
 #include "ssd1331.h"
 #include "debug.h"
 #include "wait.h"
+#include "gpio.h"
+#include "qp_comms.h"
+#include "qp_ssd1331_opcodes.h"
+#include "color.h"
 
-oled_driver_t oled_driver    = {
+static oled_driver_t oled_driver = {
     .oled_initialized = false,
-    .oled_active = false,
-    .oled_dimed = false,
-}
+    .oled_active      = false,
+    .oled_dimed       = false,
+    .device_pt        = NULL,
+};
 
 static void nkk_oled_sw_reset_on(void) {
     // OLED_SHWN_PIN should pull down.
@@ -33,8 +38,8 @@ static void nkk_oled_sw_setup(void) {
     setPinOutput(OLED_SSD_1331_DC_PIN);
 }
 
-static void nkk_oled_sw_init(void) {
-    nkk_oled_sw_init();
+static void nkk_oled_switch_init(void) {
+    nkk_oled_sw_setup();
     nkk_oled_sw_reset_on();
 }
 
@@ -42,59 +47,70 @@ bool is_oled_driver_actived(void) {
     return oled_driver.oled_active;
 }
 
-bool oled_init(oled_rotation_t rotation) {
+bool oled_init(painter_device_t *device_pt) {
     // hardware setup
     if (!oled_driver.oled_initialized) {
+        oled_driver.device_pt = device_pt;
         nkk_oled_switch_init();
-        oled_driver.oled_initialized = true;
+        oled_driver.oled_initialized = oled_driver.device_pt != NULL;
     }
     return oled_driver.oled_initialized;
 };
 
-bool oled_on(painter_device_t device) {
+bool oled_on(void) {
     if (oled_driver.oled_initialized) {
         if (!oled_driver.oled_active) {
-            painter_driver_t *driver    = (painter_driver_t *)device;
-            const uint8_t     command[] = {SSD1331_CMD_DISPLAYON};
-            if (result == SPI_STATUS_SUCCESS) {
-                oled_driver.oled_active = true;
-            }
+            qp_power(*(oled_driver.device_pt), true);
+            oled_driver.oled_active = true;
+            oled_driver.oled_dimed  = false;
         }
     }
     return oled_driver.oled_active;
 }
 
-bool oled_dim(painter_device_t device) {
+void oled_clear(void) {
+    if (oled_driver.oled_initialized) {
+        if (!oled_driver.oled_active) {
+            qp_rect(*(oled_driver.device_pt), 0, 0, OLED_WIDTH - 1, OLED_HEIGHT - 1, HSV_BLACK, true);
+        }
+    }
+}
+
+bool oled_toggle(void) {
+    if (oled_driver.oled_initialized) {
+        return !oled_off();
+    } else {
+        return oled_on();
+    }
+}
+
+bool oled_dim(void) {
     if (oled_driver.oled_initialized) {
         if (oled_driver.oled_active & !oled_driver.oled_dimed) {
             // sending the command
-            const uint8_t command[] = {SSD1331_CMD_DIMDISPLAY};
-            spi_status_t  result    = _command_transaction(command, 1);
+            qp_comms_command(*(oled_driver.device_pt), SSD1331_CMD_DIMDISPLAY);
+            oled_driver.oled_dimed = true;
         }
     }
-    return oled_driver.oled_active;
+    return oled_driver.oled_dimed;
 }
 
-bool oled_off(painter_device_t device) {
+bool oled_off(void) {
     if (oled_driver.oled_initialized) {
         if (oled_driver.oled_active) {
             // sending the command
-            const uint8_t command[] = {SSD1331_CMD_DISPLAYOFF};
-            spi_status_t  result    = _command_transaction(command, 1);
-
-            if (result == SPI_STATUS_SUCCESS) {
-                oled_driver.oled_active = false;
-            }
+            qp_power(*(oled_driver.device_pt), false);
+            oled_driver.oled_active = false;
         }
     }
-    return oled_driver.oled_active;
+    return !oled_driver.oled_active;
 }
 
 /* this command it the shutdown percedual suggeset in the datasheet, however
  * in the kb applicaiton user just unplug the usb cable ....
  * */
-bool oled_shutdown(painter_device_t device) {
-    if (oled_off(device)) {
+bool oled_shutdown(void) {
+    if (oled_off()) {
         writePinLow(OLED_SHWN_PIN);
         return true;
     } else {

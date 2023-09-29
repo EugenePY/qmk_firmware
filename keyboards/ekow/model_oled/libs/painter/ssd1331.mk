@@ -1,0 +1,10 @@
+MODULE = OLED_SSD1331
+
+$(MODULE)_SRC += $(PROJECT_LIB_PATH)/painter/ssd1331.c \
+				 $(PROJECT_LIB_PATH)/painter/ssd1331_spi_master.c
+$(MODULE)_INC += $(PROJECT_LIB_PATH)/painter
+
+OPT_DEFS +=
+VPATH += ${OLED_SSD1331_INC}
+SRC += ${OLED_SSD1331_SRC}
+

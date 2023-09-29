@@ -16,35 +16,8 @@
 
 #include QMK_KEYBOARD_H
 
-<<<<<<< HEAD
-user_config_t user_config;
-
-void eeconfig_init_user(void) {
-    user_config.raw          = 0x0000;
-    user_config.img_is_empty = 1;
-    user_config.n_frame      = 1;
-    user_config.is_dirty     = 0;
-    eeconfig_update_user(user_config.raw);
-}
-
-const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = { \
-    [0] = FOUR(QK_HAPTIC_TOGGLE, MO(1), KC_IMG, KC_Q), 
-    [1] = FOUR(KC_B, KC_D, KC_E, KC_F)};
-=======
-<<<<<<< Updated upstream
-const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    // Default layer
-    [0] = LAYOUT_60_hhkb(KC_ESC, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_MINS, KC_EQL, KC_BSLS, KC_DEL, KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, KC_LBRC, KC_RBRC, KC_BSPC, KC_LCTL, KC_A, KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT, KC_ENT, KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT, MO(1), KC_LGUI, KC_LALT, KC_SPC, KC_RCTL, KC_RALT),
-
-    // Fn1 Layer
-    [1] = LAYOUT_60_hhkb(KC_GRV, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, KC_INS, KC_DEL, KC_CAPS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP, KC_TRNS, KC_TRNS, KC_TRNS, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, KC_TRNS, KC_PAST, KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PPLS, KC_PMNS, KC_END, KC_PGDN, KC_DOWN, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS),
-    [2] = LAYOUT_60_hhkb(XXX, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, KC_INS, KC_DEL, KC_CAPS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP, KC_TRNS, KC_TRNS, KC_TRNS, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, KC_TRNS, KC_PAST, KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PPLS, KC_PMNS, KC_END, KC_PGDN, KC_DOWN, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS)
-};
-=======
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = { \
     [0] = FOUR(KC_A, KC_IMG,
                KC_G, KC_Q),
     [1] = FOUR(KC_B, KC_D,
                KC_E, KC_F)};
->>>>>>> Stashed changes
->>>>>>> model-m-painter

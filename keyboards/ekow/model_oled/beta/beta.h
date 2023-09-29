@@ -22,9 +22,3 @@
     {                        \
         {K1, K2}, { K3, K4 } \
     }
-
-// alias
-#define KC_SOL KC_TOGGLE_SOLENOIDE
-#define KC_IMG KC_ENTER_FLASH_IMG
-
-enum OLED_80_KEYCODES { KC_TOGGLE_SOLENOIDE = SAFE_RANGE, KC_ENTER_FLASH_IMG };

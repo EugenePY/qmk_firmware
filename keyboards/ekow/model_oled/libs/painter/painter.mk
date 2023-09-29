@@ -15,7 +15,9 @@ SRC += \
     $(QUANTUM_DIR)/painter/qp_draw_circle.c \
     $(QUANTUM_DIR)/painter/qp_draw_ellipse.c \
     $(QUANTUM_DIR)/painter/qp_draw_image.c \
-    $(QUANTUM_DIR)/painter/qp_draw_text.c
+    $(QUANTUM_DIR)/painter/qp_draw_text.c \
+	$(QUANTUM_DIR)/painter/qp_internal.c
+
 
 # Check if people want animations... enable the defered exec if so.
 ifeq ($(strip $(QUANTUM_PAINTER_ANIMATIONS_ENABLE)), yes)
@@ -52,4 +54,6 @@ ifeq ($(strip $(QUANTUM_PAINTER_NEEDS_COMMS_SPI)), yes)
         OPT_DEFS += -DQUANTUM_PAINTER_SPI_DC_RESET_ENABLE
     endif
 endif
+
+include $(PROJECT_LIB_PATH)/painter/ssd1331.mk
 

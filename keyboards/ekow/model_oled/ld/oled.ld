@@ -24,20 +24,9 @@ MEMORY
     flash2 (rx) : org = 0x08008000, len = 512k - 32k - 384k /* Sector 2..7 - Rest of firmware */
     flash3 (rx) : org = 0x00000000, len = 0
     flash4 (rx) : org = 0x00000000, len = 0
-<<<<<<< HEAD:keyboards/ekow/model_oled/alpha/ld/oled.ld
-    flash5 (rx) : org = 0x08020000, len = 128k
-    flash6 (rx) : org = 0x08040000, len = 128k
-=======
-<<<<<<< Updated upstream:keyboards/ekow/model_oled/alpha/ld/oled.ld
-    flash5 (rx) : org = 0x00000000, len = 0
-    flash6 (rx) : org = 0x00000000, len = 0
->>>>>>> model-m-painter:keyboards/ekow/model_oled/ld/oled.ld
-    flash7 (rx) : org = 0x08060000, len = 128k
-=======
     flash5 (rx) : org = 0x08020000, len = 384k
     flash6 (rx) : org = 0x08040000, len = 0
     flash7 (rx) : org = 0x08060000, len = 0
->>>>>>> Stashed changes:keyboards/ekow/model_oled/ld/oled.ld
     ram0   (wx) : org = 0x20000000, len = 128k
     ram2   (wx) : org = 0x00000000, len = 0
     ram1   (wx) : org = 0x00000000, len = 0
@@ -93,19 +82,6 @@ REGION_ALIAS("BSS_RAM", ram0);
 REGION_ALIAS("HEAP_RAM", ram0);
 
 /* define the eeprom base address */
-<<<<<<< HEAD:keyboards/ekow/model_oled/alpha/ld/oled.ld
-__oled_img_base_address__ = ORIGIN(flash5);
-__oled_img_flash_size__ = LENGTH(flash5) +  LENGTH(flash6) + LENGTH(flash7);
-=======
-<<<<<<< Updated upstream:keyboards/ekow/model_oled/alpha/ld/oled.ld
-__oled_img_base_address__ = ORIGIN(flash7);
-__oled_img_flash_size__ = LENGTH(flash7); 
->>>>>>> model-m-painter:keyboards/ekow/model_oled/ld/oled.ld
-__oled_img_end_address__ = __oled_img_base_address__ + __oled_img_flash_size__;
-/* Generic rules inclusion.*/
-=======
-
->>>>>>> Stashed changes:keyboards/ekow/model_oled/ld/oled.ld
 INCLUDE rules.ld
 
 SECTIONS {
