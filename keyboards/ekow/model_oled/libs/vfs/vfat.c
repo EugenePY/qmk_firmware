@@ -119,7 +119,7 @@ static FATDirectoryEntry_t
  */
 static void UpdateFAT12ClusterEntry(uint8_t* const FATTable, const uint16_t Index, const uint16_t ChainEntry) {
     /* Calculate the starting offset of the cluster entry in the FAT12 table */
-    uint8_t FATOffset   = (Index + (Index >> 1));
+    uint16_t FATOffset   = (Index + (Index >> 1));
     bool    UpperNibble = ((Index & 1) != 0);
 
     /* Check if the start of the entry is at an upper nibble of the byte, fill
@@ -143,8 +143,8 @@ static void UpdateFAT12ClusterEntry(uint8_t* const FATTable, const uint16_t Inde
  *  \param[in]   Index        Index of the start of the cluster chain to update
  *  \param[in]   ChainLength  Length of the chain to write, in clusters
  */
-static void UpdateFAT12ClusterChain(uint8_t* const FATTable, const uint16_t Index, const uint8_t ChainLength) {
-    for (uint8_t i = 0; i < ChainLength; i++) {
+static void UpdateFAT12ClusterChain(uint8_t* const FATTable, const uint16_t Index, const uint16_t ChainLength) {
+    for (uint16_t i = 0; i < ChainLength; i++) {
         uint16_t CurrentCluster = Index + i;
         uint16_t NextCluster    = CurrentCluster + 1;
 

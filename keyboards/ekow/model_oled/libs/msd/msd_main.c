@@ -10,6 +10,7 @@
 #include "usb_msd.h"
 #include "usb_main.h"
 #include "flash_ioblock.h"
+#include "msd_main.h"
 
 /* endpoint index */
 #define MSD_DEVICE_VER 0x0000
@@ -151,35 +152,33 @@ static void usbActivity(bool_t active){
 const USBMassStorageConfig msdConfig = {&USB_DRIVER, 0, USB_MS_DATA_EP, &usbActivity, "PKBxKBL", "ModelOLED", "0.1"};
 
 /* USB mass storage driver */
-USBMassStorageDriver UMSD1;
 
 /* Flash Block Device*/
 FLASHDriver* flash_block_device_ptr;
 
-extern void platform_setup(void);
 // Main Functions expose
 
-void msd_protocol_setup(void) {
+void msd_protocol_setup(USBMassStorageDriver *umsd) {
     /* Wait until USB is active */
-    usbObjectInit(UMSD1.config->usbp);
+    usbObjectInit(umsd->config->usbp);
     /* initialize the USB mass storage driver */
-    msdInit(&UMSD1);
+    msdInit(umsd);
 
     /* start the USB mass storage service */
-    msdStart(&UMSD1, &msdConfig);
+    msdStart(umsd, &msdConfig);
 
     flashInit();
     flash_block_device_ptr = get_flashObject();
-    msdReady(&UMSD1, (BaseBlockDevice*)flash_block_device_ptr);
+    msdReady(umsd, (BaseBlockDevice*)flash_block_device_ptr);
 
     // start the USB
-    usbDisconnectBus(UMSD1.config->usbp);
-    usbStop(UMSD1.config->usbp);
-    usbStart(UMSD1.config->usbp, &msd_usbConfig);
-    usbConnectBus(UMSD1.config->usbp);
+    usbDisconnectBus(umsd->config->usbp);
+    usbStop(umsd->config->usbp);
+    usbStart(umsd->config->usbp, &msd_usbConfig);
+    usbConnectBus(umsd->config->usbp);
 
     while (true) {
-        if (UMSD1.config->usbp->state == USB_ACTIVE) {
+        if (umsd->config->usbp->state == USB_ACTIVE) {
             break;
         }
         wait_ms(50);

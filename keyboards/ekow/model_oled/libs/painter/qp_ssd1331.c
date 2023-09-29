@@ -27,7 +27,7 @@ bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
         SSD1331_CMD_CONTRASTB,         5,  1, 0x1A,
         SSD1331_CMD_CONTRASTC,         5,  1, 0x17,
         SSD1331_CMD_MASTERCURRENT,     5,  1, 0x0F,
-        SSD1331_CMD_SETREMAP,          5,  1, 0x70, //
+        SSD1331_CMD_SETREMAP,          5,  1, 0x74, //
         SSD1331_CMD_STARTLINE,         5,  1, 0x00,
         SSD1331_CMD_DISPLAYOFFSET,     5,  1, 0x10,
         SSD1331_CMD_NORMALDISPLAY,     5,  0,

@@ -7,9 +7,7 @@
 //
 #define PACK __attribute__((packed))
 
-#ifndef FLASH_FILE_SIZE_BYTES
-#    define FLASH_FILE_SIZE_BYTES 1024 * 128 * 3
-#endif
+#define FLASH_FILE_SIZE_BYTES 1024 * 128 * 3
 
 /** Number of sectors that comprise a single logical disk cluster. */
 #define SECTOR_PER_CLUSTER 4
@@ -41,7 +39,7 @@
 
 /** Total number of logical sectors/blocks on the disk. */
 // #define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
-#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 4
+#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 2
 /** Converts a given time in HH:MM:SS format to a FAT filesystem time.
  *
  *  \note The minimum seconds resolution of FAT is 2, thus odd seconds
@@ -231,11 +229,10 @@ typedef union {
 // APIs
 // Read the data and return the fat12 format
 void vfs_init(void);
-int vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer);
+int  vfs_read_fat12(const uint16_t block_idx, uint8_t* output_block_buffer);
 // Write the data block
 int vfs_write_fat12(const uint16_t block_idx, const uint8_t* intput_block_buffer);
 
 // each image is 96 * 64 * n_frame * 2 bytes
 //
 //
-
