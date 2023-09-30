@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // ModelOLED default matrix config
 #define MATRIX_ROW_PINS \
-    { C13, C14, C15, B7, A6 }
+    { B8, B9, C15, B6, B5, B7}
 
 #define MATRIX_COL_PINS \
     { B2, B10, B13, B12, B15, B14, A10, B4, A1, A2, A3, A4, A15, A8, A6, B3, A0 }

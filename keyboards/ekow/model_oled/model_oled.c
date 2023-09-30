@@ -268,20 +268,19 @@ void housekeeping_task_kb(void) {
     timeout_tick_timer();
 };
 
-// static THD_WORKING_AREA(waPainterThread, 256);
-// static THD_FUNCTION(PainterThread, arg) {
-//    void arg;
-//   while (true) {
-//      chThdYield();
-// }
-//}
+// not blocking the rendering task when the remote is sleeping
+static THD_WORKING_AREA(waPainterThread, 256);
+static THD_FUNCTION(PainterThread, arg) {
+    (void)arg;
 
-// #define MATRIX_IO_DELAY 20
-// void matrix_io_delay(void) {
-//    wait_us(MATRIX_IO_DELAY);
-//   chThdYield();
-//}
-// thread_t *thread = NULL;
+    void qp_internal_task(void);
+    while (true) {
+        qp_internal_task();
+        chThdYield();
+    }
+}
+
+thread_t *thread = NULL;
 
 int main(void) {
     platform_setup();
@@ -294,12 +293,10 @@ int main(void) {
     keyboard_setup();
     protocol_init();
     /* Main loop */
-    // thread = chThdCreateStatic(waPainterThread, sizeof(waPainterThread), NORMALPRIO, PainterThread, NULL);
+    thread = chThdCreateStatic(waPainterThread, sizeof(waPainterThread), NORMALPRIO, PainterThread, NULL);
     while (true) {
         protocol_task();
         // Run Quantum Painter task
-        void qp_internal_task(void);
-        qp_internal_task();
 #ifdef DEFERRED_EXEC_ENABLE
         // Run deferred executions
         void deferred_exec_task(void);

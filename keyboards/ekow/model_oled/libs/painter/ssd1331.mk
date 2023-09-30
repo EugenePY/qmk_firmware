@@ -1,7 +1,7 @@
 MODULE = OLED_SSD1331
 
-$(MODULE)_SRC += $(PROJECT_LIB_PATH)/painter/ssd1331.c \
-				 $(PROJECT_LIB_PATH)/painter/ssd1331_spi_master.c
+$(MODULE)_SRC += $(PROJECT_LIB_PATH)/painter/ssd1331.c
+
 $(MODULE)_INC += $(PROJECT_LIB_PATH)/painter
 
 OPT_DEFS +=

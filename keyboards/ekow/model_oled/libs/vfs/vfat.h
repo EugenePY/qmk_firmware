@@ -39,7 +39,7 @@
 
 /** Total number of logical sectors/blocks on the disk. */
 // #define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) + 32)
-#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 2
+#define LUN_MEDIA_BLOCKS (FILE_SECTORS(FLASH_FILE_SIZE_BYTES)) + 4
 /** Converts a given time in HH:MM:SS format to a FAT filesystem time.
  *
  *  \note The minimum seconds resolution of FAT is 2, thus odd seconds
