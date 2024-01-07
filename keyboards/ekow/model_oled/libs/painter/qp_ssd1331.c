@@ -40,7 +40,7 @@ bool qp_ssd1331_init(painter_device_t device, painter_rotation_t rotation) {
         SSD1331_CMD_ENABLELINEARGRAYSCALE, 5, 0,
         SSD1331_CMD_PRECHARGELEVEL,    5,  1, 0x12,
         SSD1331_CMD_VCOMH,             5, 1, 0x3E,
-        SSD1331_CMD_DISPLAYOFF,        5, 0
+        SSD1331_CMD_DISPLAYOFF,        5, 0,
         //SSD1331_DISPLAYON,           5,  0, not turning on the oled when init
     };
     qp_comms_bulk_command_sequence(device, ssd1331_init_sequence, sizeof(ssd1331_init_sequence));

@@ -160,7 +160,6 @@ static int ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuf
     uint16_t FileEndBlock   = FileStartBlock + (FILE_SECTORS(FLASH_FILE_SIZE_BYTES) - 1);
 
     uint32_t FlashAddress = (uint32_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
-
     int res = CH_FAILED;
     /* Range check the write request - abort if requested block is not within the
      *
@@ -176,11 +175,9 @@ static int ReadWriteFLASHFileBlock(const uint16_t BlockNumber, uint8_t* BlockBuf
         res = CH_SUCCESS;
     } else {
         // erase sector at the begining of write
-        if ((FlashAddress % flashSectorSize(5)) == 0) {
+        if (BlockNumber == DISK_BLOCK_DataStartBlock) {
             res = flashSectorErase(5);
-        } else if ((FlashAddress % flashSectorSize(6)) == 0) {
             res = flashSectorErase(6);
-        } else if ((FlashAddress % flashSectorSize(7)) == 0) {
             res = flashSectorErase(7);
         }
         res = flashWrite(FLASH_ADDR(FlashAddress), (char*)BlockBuffer, SECTOR_SIZE_BYTES);

@@ -27,14 +27,19 @@
 #include "wait.h"
 
 #include "graphic.h"
-#include "img/gb.qff.h"
-#include "img/OLED-test.qgf.h"
-#include "img/firmware_graphic.qgf.h"
+#include "img/model_oled_logo_64.qgf.h"
+//#include "img/modeloledlogo.qgf.h"
+
+
+//#include "img/gb.qff.h"
+// #include "img/OLED-test.qgf.h"
+// #include "img/firmware_graphic.qgf.h"
 
 // for flashing the image
 #include "oled_main.h"
 
 enum via_oled_config_value { id_oled_timeout = 1 };
+extern uint32_t __oled_img_base_address__; // this is define in the linker script
 
 // eeprom config
 static oled_config_t oled_config;
@@ -49,8 +54,8 @@ void eeconfig_init_user(void) { // EEPROM is getting reset!
     oled_config.n_image        = 0;        // order of default image(auther info)
     eeconfig_update_user(oled_config.raw); // Write default value to EEPROM now
 }
-#define TIMEOUT_TRESHOLD 10
-#define OLED_SLEEP_THREHOLD 20
+#define TIMEOUT_TRESHOLD 30
+#define OLED_SLEEP_THREHOLD TIMEOUT_TRESHOLD + 10
 
 static void via_oled_config_set_value(const uint8_t *data) {
     const uint8_t *value_id   = &(data[0]);
@@ -117,7 +122,6 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
 /* model oled main */
 
 static painter_device_t       oled_switch;
-static painter_font_handle_t  font         = NULL;
 static graphic_node_t         root         = {.value = NULL, .next = NULL, .last = NULL};
 static painter_image_handle_t graphic      = NULL;
 static graphic_node_t        *current_node = NULL;
@@ -134,16 +138,17 @@ static void oled_setup(void) {
     oled_read_config();
 }
 
+#define DEFAULT_IMAGE gfx_model_oled_logo_64
+
 void keyboard_post_init_kb(void) {
     oled_setup();
     // loading the graphics
-    font       = qp_load_font_mem(font_gb);
-    graphic    = qp_load_image_mem(gfx_firmware_graphic);
+    graphic    = qp_load_image_mem(DEFAULT_IMAGE);
     root.value = &graphic;
     root.next  = NULL;
     root.last  = NULL;
     // add(&root, &img);
-    create_nodes(&root, (void *)gfx_OLED);
+    create_nodes(&root, (void *)&__oled_img_base_address__);
     current_node = &root;
     for (uint8_t i = 0; i < oled_config.n_image; i++) {
         if (!forward(&current_node)) {

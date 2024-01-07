@@ -88,7 +88,12 @@ bool oled_dim(void) {
     if (oled_driver.oled_initialized) {
         if (oled_driver.oled_active & !oled_driver.oled_dimed) {
             // sending the command
+            if (!qp_comms_start(*(oled_driver.device_pt))) {
+                qp_dprintf("oled_dim: fail (could not start comms)\n");
+                return false;
+            }
             qp_comms_command(*(oled_driver.device_pt), SSD1331_CMD_DIMDISPLAY);
+            qp_comms_stop(*(oled_driver.device_pt));
             oled_driver.oled_dimed = true;
         }
     }
